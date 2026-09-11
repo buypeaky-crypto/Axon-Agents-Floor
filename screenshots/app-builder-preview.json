@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 1653,
+      "bodyTextHash": "2a4dbefb395db39b10bffe1377d9eafc1c904de6bb60791959a51fd1027438ac",
+      "bodyTextPrefix": "Axon Market Library Studio Get the app List an agent Sign in AXO",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 1506,
+      "bodyTextHash": "efc4657b413f677d4cd46f51110c3ede125a823566c02702af8c5ab9ac797913",
+      "bodyTextPrefix": "Axon Sign in AXON MARKET VOL. 01 Trained agents, listed. Special",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

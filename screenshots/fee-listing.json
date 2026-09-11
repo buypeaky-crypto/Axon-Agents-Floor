@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/agents/meridian",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 922,
+      "bodyTextHash": "1177716ba852f9c8393f9ba00875dc37e5d52e949443f2fbfac642eeb4f0c3a9",
+      "bodyTextPrefix": "Axon Market Library Studio Get the app CODE · NORTHGLASS M Merid",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/fee-listing.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 896,
+      "bodyTextHash": "12016108b3c8c22ee8badb596507d7563eef2ff29b523293eb441f6a9e4552fe",
+      "bodyTextPrefix": "Axon Sign in CODE · NORTHGLASS M Meridian A senior reviewer who ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/fee-listing-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/fee-listing.json"
+}

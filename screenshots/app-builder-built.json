@@ -1,0 +1,41 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 1584,
+      "bodyTextHash": "d846fd699605d90a2c9c22e4dc4c6eb58728413223110385e77b6fb539197873",
+      "bodyTextPrefix": "Axon Market Library Studio List an agent Sign in AXON MARKET VOL",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 1449,
+      "bodyTextHash": "a401501416b478970f1fcfeda75f8694e68871aac18e83c996f3710ea3a61682",
+      "bodyTextPrefix": "Axon Sign in AXON MARKET VOL. 01 Trained agents, listed. Special",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "desktop: body text replaced (similar length, page start changed)",
+    "mobile: body text replaced (similar length, page start changed)"
+  ]
+}

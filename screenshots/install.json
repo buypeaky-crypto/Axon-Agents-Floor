@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/install",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 943,
+      "bodyTextHash": "160a8b1551a86ece51b6135d04f252affa7774f5184169510e7e648c67fe2439",
+      "bodyTextPrefix": "Axon Market Library Studio Get the app ON YOUR PHONE Get Axon Ax",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/install.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Axon",
+      "hasCanvas": false,
+      "bodyTextLen": 917,
+      "bodyTextHash": "4a8afd2439ef8dcd170af325081945fd846f8c37078876e4385d64f2b392fa87",
+      "bodyTextPrefix": "Axon Sign in ON YOUR PHONE Get Axon Axon is a web app you instal",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/install-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/install.json"
+}
