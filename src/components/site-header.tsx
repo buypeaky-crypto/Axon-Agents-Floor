@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { AxonMark } from "@/components/axon-mark";
@@ -9,6 +10,7 @@ import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
+import { queryKeys } from "@/lib/query";
 import { getMyProfile } from "@/lib/server/market";
 import { WALLET_EVENT } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
@@ -21,34 +23,30 @@ const NAV = [
 
 function CreditsChip() {
   const { user, isPending } = useCurrentUserState();
-  const [credits, setCredits] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const profile = useQuery({
+    queryKey: queryKeys.profile(user?.id ?? ""),
+    queryFn: () => getMyProfile(),
+    enabled: Boolean(user),
+  });
 
   useEffect(() => {
-    if (!user) {
-      setCredits(null);
-      return;
-    }
-    let cancelled = false;
-    getMyProfile()
-      .then((p) => {
-        if (!cancelled) setCredits(p.credits);
-      })
-      .catch((err) => {
-        if (!cancelled && !isUnauthorized(err)) setCredits(null);
-      });
+    if (!user) return;
     const onWallet = (event: Event) => {
-      const detail = (event as CustomEvent<number>).detail;
-      if (typeof detail === "number") setCredits(detail);
+      const credits = (event as CustomEvent<number>).detail;
+      if (typeof credits !== "number") return;
+      queryClient.setQueryData(queryKeys.profile(user.id), (prev: { credits: number } | undefined) =>
+        prev ? { ...prev, credits } : prev,
+      );
     };
     window.addEventListener(WALLET_EVENT, onWallet);
-    return () => {
-      cancelled = true;
-      window.removeEventListener(WALLET_EVENT, onWallet);
-    };
-  }, [user]);
+    return () => window.removeEventListener(WALLET_EVENT, onWallet);
+  }, [user, queryClient]);
 
-  if (isPending) return <Skeleton className="h-9 w-20 rounded-full" />;
-  if (!user || credits === null) return null;
+  if (isPending || (user && profile.isLoading)) return <Skeleton className="h-9 w-20 rounded-full" />;
+  if (!user) return null;
+  const credits = profile.data?.credits;
+  if (credits == null || (profile.error && !isUnauthorized(profile.error))) return null;
   return (
     <span className="inline-flex h-9 items-center rounded-full bg-secondary px-3 font-mono text-xs tabular-nums text-foreground shadow-[0_0_0_1px_rgb(236_234_228/0.1)]">
       {formatCredits(credits)}

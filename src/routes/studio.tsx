@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { SiteShell } from "@/components/site-shell";
@@ -9,35 +9,46 @@ import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatFeePercent } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
-import { isUnauthorized } from "@/lib/is-unauthorized";
+import { queryKeys } from "@/lib/query";
 import { listMyListings, setListingLive } from "@/lib/server/market";
 import type { AgentRecord } from "@/lib/types";
 
 export const Route = createFileRoute("/studio")({ component: StudioPage });
 
+type StudioData = {
+  agents: AgentRecord[];
+  grossCents: number;
+  netCents: number;
+  takeCents: number;
+};
+
 function StudioPage() {
   const { user, isPending } = useCurrentUserState();
-  const [data, setData] = useState<{
-    agents: AgentRecord[];
-    grossCents: number;
-    netCents: number;
-    takeCents: number;
-  } | null>(null);
-
-  useEffect(() => {
-    if (isPending || !user) return;
-    let cancelled = false;
-    listMyListings()
-      .then((rows) => {
-        if (!cancelled) setData(rows);
-      })
-      .catch((err) => {
-        if (!cancelled && !isUnauthorized(err)) toast.error("Could not load the studio.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, isPending]);
+  const queryClient = useQueryClient();
+  const studio = useQuery({
+    queryKey: queryKeys.studio(user?.id ?? ""),
+    queryFn: () => listMyListings(),
+    enabled: Boolean(user),
+  });
+  const toggle = useMutation({
+    mutationFn: (agent: AgentRecord) =>
+      setListingLive({ data: { agentId: agent.id, listed: !agent.listed } }),
+    onSuccess: (_void, agent) => {
+      queryClient.setQueryData<StudioData>(queryKeys.studio(user?.id ?? ""), (prev) =>
+        prev
+          ? {
+              ...prev,
+              agents: prev.agents.map((row) =>
+                row.id === agent.id ? { ...row, listed: !row.listed } : row,
+              ),
+            }
+          : prev,
+      );
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Could not update listing.");
+    },
+  });
 
   if (isPending) {
     return (
@@ -50,23 +61,7 @@ function StudioPage() {
   }
   if (!user) return <RedirectToSignIn />;
 
-  async function toggle(agent: AgentRecord) {
-    try {
-      await setListingLive({ data: { agentId: agent.id, listed: !agent.listed } });
-      setData((prev) =>
-        prev
-          ? {
-              ...prev,
-              agents: prev.agents.map((a) =>
-                a.id === agent.id ? { ...a, listed: !a.listed } : a,
-              ),
-            }
-          : prev,
-      );
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update listing.");
-    }
-  }
+  const data = studio.data;
 
   return (
     <SiteShell>
@@ -91,6 +86,7 @@ function StudioPage() {
         </div>
 
         <div className="mt-10 space-y-3">
+          {studio.isLoading && <Skeleton className="h-24 rounded-2xl" />}
           {data && data.agents.length === 0 && (
             <div className="rounded-2xl bg-card p-6 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">
               <p className="text-sm text-muted-foreground">
@@ -121,7 +117,12 @@ function StudioPage() {
                     View
                   </Link>
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => void toggle(agent)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={toggle.isPending}
+                  onClick={() => toggle.mutate(agent)}
+                >
                   {agent.listed ? "Unlist" : "List"}
                 </Button>
               </div>

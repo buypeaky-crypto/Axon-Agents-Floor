@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { SiteShell } from "@/components/site-shell";
@@ -19,6 +20,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { formatFeePercent, sellerNetCents } from "@/lib/fee";
 import { formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
+import { queryKeys } from "@/lib/query";
 import { createListing } from "@/lib/server/market";
 
 export const Route = createFileRoute("/studio_/new")({ component: NewListing });
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/studio_/new")({ component: NewListing });
 function NewListing() {
   const { user, isPending } = useCurrentUserState();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -72,6 +75,7 @@ function NewListing() {
         },
       });
       toast.success(`${form.name} is on the floor.`);
+      if (user) await queryClient.invalidateQueries({ queryKey: queryKeys.studio(user.id) });
       await navigate({ to: "/agents/$slug", params: { slug: created.slug } });
     } catch (err) {
       if (isUnauthorized(err)) return;

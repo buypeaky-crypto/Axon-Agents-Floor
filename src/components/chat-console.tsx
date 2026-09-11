@@ -3,7 +3,7 @@ import { ArrowUp } from "lucide-react";
 import { toast } from "sonner";
 import { AgentSigil } from "@/components/agent-sigil";
 import { Button } from "@/components/ui/button";
-import { chatWithAgent } from "@/lib/server/chat";
+import { ChatRequestError, streamAgentChat } from "@/lib/chat-stream";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import type { AgentRecord, AgentSummary, ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,13 +22,14 @@ export function ChatConsole({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [messages, pending]);
+  }, [messages, pending, streaming]);
 
   async function send() {
     const text = draft.trim();
@@ -37,15 +38,40 @@ export function ChatConsole({
     setMessages(next);
     setDraft("");
     setPending(true);
+    setStreaming(false);
+    let started = false;
     try {
-      const result = await chatWithAgent({ data: { agentId: agent.id, messages: next } });
-      if (!result.ok) {
-        if (result.trialSpent) onAcquire?.();
-        toast.error(result.error);
+      await streamAgentChat(agent.id, next, (event) => {
+        if (event.type === "delta") {
+          started = true;
+          setStreaming(true);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant") {
+              return [...prev.slice(0, -1), { role: "assistant", content: last.content + event.text }];
+            }
+            return [...prev, { role: "assistant", content: event.text }];
+          });
+        }
+        if (event.type === "error") {
+          if (event.trialSpent) onAcquire?.();
+          toast.error(event.error);
+        }
+      });
+      if (!started) {
+        toast.error("The agent returned silence.");
+      }
+    } catch (err) {
+      if (err instanceof ChatRequestError) {
+        if (err.status === 401 || isUnauthorized(err)) {
+          onNeedSignIn?.();
+          toast.error("Sign in to run this agent.");
+          return;
+        }
+        if (err.trialSpent) onAcquire?.();
+        toast.error(err.message);
         return;
       }
-      setMessages([...next, { role: "assistant", content: result.text }]);
-    } catch (err) {
       if (isUnauthorized(err)) {
         onNeedSignIn?.();
         toast.error("Sign in to run this agent.");
@@ -54,6 +80,7 @@ export function ChatConsole({
       toast.error(err instanceof Error ? err.message : "The run failed.");
     } finally {
       setPending(false);
+      setStreaming(false);
     }
   }
 
@@ -86,10 +113,13 @@ export function ChatConsole({
               )}
             >
               {m.content}
+              {streaming && i === messages.length - 1 && m.role === "assistant" ? (
+                <span className="ml-0.5 inline-block h-3 w-px translate-y-px bg-foreground/70" />
+              ) : null}
             </div>
           </div>
         ))}
-        {pending && (
+        {pending && !streaming && (
           <p className="shimmer-text text-sm text-muted-foreground">Thinking</p>
         )}
       </div>

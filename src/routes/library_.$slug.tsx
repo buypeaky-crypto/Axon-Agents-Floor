@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChatConsole } from "@/components/chat-console";
 import { SiteShell } from "@/components/site-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { queryKeys } from "@/lib/query";
 import { getAgent, getMyRelation } from "@/lib/server/market";
-import { isUnauthorized } from "@/lib/is-unauthorized";
 
 export const Route = createFileRoute("/library_/$slug")({
   loader: async ({ params }) => {
@@ -20,30 +20,15 @@ export const Route = createFileRoute("/library_/$slug")({
 function RunPage() {
   const { agent } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const relation = useQuery({
+    queryKey: queryKeys.relation(user?.id ?? "", agent.id),
+    queryFn: () => getMyRelation({ data: agent.id }),
+    enabled: Boolean(user),
+  });
 
-  useEffect(() => {
-    if (isPending) return;
-    if (!user) {
-      setAllowed(false);
-      return;
-    }
-    let cancelled = false;
-    getMyRelation({ data: agent.id })
-      .then((r) => {
-        if (!cancelled) setAllowed(r.purchased || r.isSeller);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (isUnauthorized(err)) setAllowed(false);
-        else setAllowed(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, isPending, agent.id]);
+  const allowed = Boolean(relation.data?.purchased || relation.data?.isSeller);
 
-  if (isPending || allowed === null) {
+  if (isPending || (user && relation.isLoading)) {
     return (
       <SiteShell>
         <main className="mx-auto max-w-3xl px-4 py-14">

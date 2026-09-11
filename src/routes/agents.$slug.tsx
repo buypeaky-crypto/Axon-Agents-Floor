@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AgentSigil } from "@/components/agent-sigil";
@@ -15,6 +16,7 @@ import { categoryLabel } from "@/lib/categories";
 import { formatFeePercent, sellerNetCents } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
+import { queryKeys } from "@/lib/query";
 import { addReview, buyAgent, getAgent, getMyRelation } from "@/lib/server/market";
 import { emitWallet } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
@@ -40,81 +42,71 @@ type Relation = {
 function AgentPage() {
   const { agent, reviews } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
-  const [relation, setRelation] = useState<Relation | null>(null);
-  const [buying, setBuying] = useState(false);
+  const queryClient = useQueryClient();
   const [needSignIn, setNeedSignIn] = useState(false);
   const [rating, setRating] = useState(5);
   const [note, setNote] = useState("");
-  const [sendingReview, setSendingReview] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      setRelation(null);
-      return;
-    }
-    let cancelled = false;
-    getMyRelation({ data: agent.id })
-      .then((r) => {
-        if (!cancelled) setRelation(r);
-      })
-      .catch((err) => {
-        if (!cancelled && isUnauthorized(err)) setRelation(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, agent.id]);
+  const relationQuery = useQuery({
+    queryKey: queryKeys.relation(user?.id ?? "", agent.id),
+    queryFn: () => getMyRelation({ data: agent.id }),
+    enabled: Boolean(user),
+  });
+  const relation = relationQuery.data ?? null;
 
-  if (needSignIn) return <RedirectToSignIn />;
-
-  const owned = Boolean(relation?.purchased || relation?.isSeller);
-  const canReview = Boolean(relation?.purchased && !relation?.hasReviewed);
-
-  async function acquire() {
-    if (!user) {
-      setNeedSignIn(true);
-      return;
-    }
-    setBuying(true);
-    try {
-      const result = await buyAgent({ data: agent.id });
+  const acquire = useMutation({
+    mutationFn: () => buyAgent({ data: agent.id }),
+    onSuccess: (result) => {
       emitWallet(result.credits);
-      setRelation((prev) =>
-        prev
-          ? { ...prev, purchased: true, credits: result.credits }
-          : {
-              purchased: true,
-              isSeller: false,
-              hasReviewed: false,
-              credits: result.credits,
-              trialTurns: 0,
-              trialLimit: 3,
-            },
-      );
+      if (user) {
+        queryClient.setQueryData(queryKeys.profile(user.id), (prev: { credits: number } | undefined) =>
+          prev ? { ...prev, credits: result.credits } : prev,
+        );
+        queryClient.setQueryData(queryKeys.relation(user.id, agent.id), (prev: Relation | undefined) =>
+          prev
+            ? { ...prev, purchased: true, credits: result.credits }
+            : {
+                purchased: true,
+                isSeller: false,
+                hasReviewed: false,
+                credits: result.credits,
+                trialTurns: 0,
+                trialLimit: 3,
+              },
+        );
+        void queryClient.invalidateQueries({ queryKey: queryKeys.library(user.id) });
+      }
       toast.success(result.already ? "Already in your library." : `${agent.name} is yours.`);
-    } catch (err) {
+    },
+    onError: (err) => {
       if (isUnauthorized(err)) {
         setNeedSignIn(true);
         return;
       }
       toast.error(err instanceof Error ? err.message : "Could not complete the sale.");
-    } finally {
-      setBuying(false);
-    }
-  }
+    },
+  });
 
-  async function submitReview() {
-    setSendingReview(true);
-    try {
-      await addReview({ data: { agentId: agent.id, rating, body: note } });
+  const review = useMutation({
+    mutationFn: () => addReview({ data: { agentId: agent.id, rating, body: note } }),
+    onSuccess: () => {
       toast.success("Review noted.");
-      setRelation((prev) => (prev ? { ...prev, hasReviewed: true } : prev));
-    } catch (err) {
+      if (user) {
+        queryClient.setQueryData(queryKeys.relation(user.id, agent.id), (prev: Relation | undefined) =>
+          prev ? { ...prev, hasReviewed: true } : prev,
+        );
+      }
+    },
+    onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Could not save the review.");
-    } finally {
-      setSendingReview(false);
-    }
-  }
+    },
+  });
+
+  if (needSignIn) return <RedirectToSignIn />;
+
+  const owned = Boolean(relation?.purchased || relation?.isSeller);
+  const canReview = Boolean(relation?.purchased && !relation?.hasReviewed);
+  const buying = acquire.isPending;
 
   return (
     <SiteShell>
@@ -202,10 +194,10 @@ function AgentPage() {
                     <Button
                       className="mt-3"
                       size="sm"
-                      disabled={sendingReview || note.trim().length < 8}
-                      onClick={() => void submitReview()}
+                      disabled={review.isPending || note.trim().length < 8}
+                      onClick={() => review.mutate()}
                     >
-                      {sendingReview ? "Saving…" : "Publish review"}
+                      {review.isPending ? "Saving…" : "Publish review"}
                     </Button>
                   </div>
                 )}
@@ -227,7 +219,7 @@ function AgentPage() {
                   agent={agent}
                   purchased={owned}
                   onNeedSignIn={() => setNeedSignIn(true)}
-                  onAcquire={() => void acquire()}
+                  onAcquire={() => acquire.mutate()}
                 />
               </TabsContent>
             </Tabs>
@@ -253,7 +245,17 @@ function AgentPage() {
                   </Link>
                 </Button>
               ) : (
-                <Button className="w-full" disabled={buying || isPending} onClick={() => void acquire()}>
+                <Button
+                  className="w-full"
+                  disabled={buying || isPending}
+                  onClick={() => {
+                    if (!user) {
+                      setNeedSignIn(true);
+                      return;
+                    }
+                    acquire.mutate();
+                  }}
+                >
                   {buying ? "Settling…" : user ? "Acquire" : "Sign in to acquire"}
                 </Button>
               )}

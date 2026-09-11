@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AgentCard } from "@/components/agent-card";
 import { SiteShell } from "@/components/site-shell";
@@ -7,33 +7,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { isUnauthorized } from "@/lib/is-unauthorized";
+import { queryKeys } from "@/lib/query";
 import { listLibrary } from "@/lib/server/market";
-import type { AgentSummary } from "@/lib/types";
 
 export const Route = createFileRoute("/library")({ component: LibraryPage });
 
 function LibraryPage() {
   const { user, isPending } = useCurrentUserState();
-  const [agents, setAgents] = useState<(AgentSummary & { purchasedAt: string })[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isPending) return;
-    if (!user) return;
-    let cancelled = false;
-    listLibrary()
-      .then((rows) => {
-        if (!cancelled) setAgents(rows);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (isUnauthorized(err)) return;
-        setError(err instanceof Error ? err.message : "Could not load the library.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, isPending]);
+  const library = useQuery({
+    queryKey: queryKeys.library(user?.id ?? ""),
+    queryFn: () => listLibrary(),
+    enabled: Boolean(user),
+  });
 
   if (isPending) {
     return (
@@ -50,6 +35,14 @@ function LibraryPage() {
   }
   if (!user) return <RedirectToSignIn />;
 
+  const agents = library.data;
+  const error =
+    library.error && !isUnauthorized(library.error)
+      ? library.error instanceof Error
+        ? library.error.message
+        : "Could not load the library."
+      : null;
+
   return (
     <SiteShell>
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -59,6 +52,12 @@ function LibraryPage() {
           Agents you have acquired. Open one to run it with the full dossier in context.
         </p>
         {error && <p className="mt-6 text-sm text-destructive">{error}</p>}
+        {library.isLoading && (
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-56 rounded-2xl" />
+            <Skeleton className="h-56 rounded-2xl" />
+          </div>
+        )}
         {agents && agents.length === 0 && (
           <div className="mt-12 max-w-md rounded-2xl bg-card p-6 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">
             <p className="text-sm text-muted-foreground">

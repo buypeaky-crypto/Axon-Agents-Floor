@@ -15,6 +15,7 @@ import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LibrarySlugRouteImport } from './routes/library_.$slug'
 import { Route as StudioNewRouteImport } from './routes/studio_.new'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -49,6 +50,11 @@ const AgentsSlugRoute = AgentsSlugRouteImport.update({
   path: '/agents/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibrarySlugRoute = LibrarySlugRouteImport.update({
   id: '/library_/$slug',
   path: '/library/$slug',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/studio': typeof StudioRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/chat': typeof ApiChatRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/studio/new': typeof StudioNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/studio': typeof StudioRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/chat': typeof ApiChatRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/studio/new': typeof StudioNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/studio': typeof StudioRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/chat': typeof ApiChatRoute
   '/library_/$slug': typeof LibrarySlugRoute
   '/studio_/new': typeof StudioNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/studio'
     | '/agents/$slug'
+    | '/api/chat'
     | '/library/$slug'
     | '/studio/new'
     | '/api/auth/$'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/studio'
     | '/agents/$slug'
+    | '/api/chat'
     | '/library/$slug'
     | '/studio/new'
     | '/api/auth/$'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/studio'
     | '/agents/$slug'
+    | '/api/chat'
     | '/library_/$slug'
     | '/studio_/new'
     | '/api/auth/$'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   StudioRoute: typeof StudioRoute
   AgentsSlugRoute: typeof AgentsSlugRoute
+  ApiChatRoute: typeof ApiChatRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
   StudioNewRoute: typeof StudioNewRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library_/$slug': {
       id: '/library_/$slug'
       path: '/library/$slug'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   StudioRoute: StudioRoute,
   AgentsSlugRoute: AgentsSlugRoute,
+  ApiChatRoute: ApiChatRoute,
   LibrarySlugRoute: LibrarySlugRoute,
   StudioNewRoute: StudioNewRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
