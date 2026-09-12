@@ -216,7 +216,7 @@ function PriceSplit({ dollars }: { dollars: string }) {
   if (!Number.isFinite(priceCents) || priceCents < 1900) return null;
   return (
     <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-      Ledger buyer pays {formatCredits(priceCents)}. Card buyer pays listed plus processing. You keep{" "}
+      Ledger buyer pays {formatCredits(priceCents)} in Bitcoin. You keep{" "}
       {formatCredits(sellerNetCents(priceCents))}. Axon takes {formatHouseTake()} on the sale. Publishing costs{" "}
       {formatListingFee()}.
     </p>

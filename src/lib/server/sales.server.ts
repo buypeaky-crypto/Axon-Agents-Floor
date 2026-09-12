@@ -6,6 +6,8 @@ import { acquireListedAgent, ensureProfile } from "@/lib/server/market";
 import { ensureCatalog } from "@/lib/server/catalog";
 import { maybeRunScout } from "@/lib/server/scout.server";
 import type { AgentRecord } from "@/lib/types";
+import { weightFingerprint } from "@/lib/weight-artifact";
+import { weightFor } from "@/lib/weights";
 
 type AgentRow = {
   id: string;
@@ -43,6 +45,7 @@ function asBool(value: unknown): boolean {
 }
 
 function mapAgent(row: AgentRow): AgentRecord {
+  const print = weightFingerprint(row.slug, weightFor(row.slug, row.category));
   return {
     id: row.id,
     slug: row.slug,
@@ -74,6 +77,8 @@ function mapAgent(row: AgentRow): AgentRecord {
     evals: null,
     sample: null,
     sellerBtc: "",
+    weightChecksum: print.checksum,
+    weightParameters: print.parameters,
   };
 }
 

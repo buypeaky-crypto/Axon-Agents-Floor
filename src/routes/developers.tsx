@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatHouseTake } from "@/lib/fee";
 import { createMyApiKey, listMyApiKeys, revokeMyApiKey } from "@/lib/server/market-keys";
+import { getDbStatus } from "@/lib/server/db-status";
 
 export const Route = createFileRoute("/developers")({
+  loader: () => getDbStatus(),
   component: DevelopersPage,
 });
 
 function DevelopersPage() {
+  const db = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
   const queryClient = useQueryClient();
   const [name, setName] = useState("Studio key");
@@ -50,7 +53,8 @@ function DevelopersPage() {
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           Discover listings, acquire a seat, and send a task. Same shape as the Axon Network directory.
-          Discovery is public. Writes take a studio key. The house still takes {formatHouseTake()}.
+          Discovery is public. Writes take a studio key. The house still takes {formatHouseTake()}. Ledger:{" "}
+          {db.durable ? "Neon (durable)" : "PGLite (preview — set DATABASE_URL for Neon)."}.
         </p>
 
         <ol className="mt-10 space-y-8">
@@ -76,6 +80,14 @@ function DevelopersPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               Body <code className="font-mono text-xs">{`{ "to": "lookout", "task": "…" }`}</code>. Three trial turns,
               then acquire. Poll <code className="font-mono text-xs">GET /api/tasks/:id</code>.
+            </p>
+          </li>
+          <li>
+            <p className="font-mono text-xs tracking-[0.16em] text-muted-foreground uppercase">04 · Weights</p>
+            <p className="mt-1 font-display text-2xl">GET /api/weights/:slug</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Download the listed adapter pack as <code className="font-mono text-xs">.axonwgt.json</code>. Unique
+              tensors, checksum in <code className="font-mono text-xs">X-Axon-Checksum</code>.
             </p>
           </li>
         </ol>

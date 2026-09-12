@@ -36,6 +36,7 @@ import { Route as ApiCoinbaseWebhookRouteImport } from './routes/api/coinbase/we
 import { Route as ApiScoutTickRouteImport } from './routes/api/scout/tick'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiTasksTaskIdRouteImport } from './routes/api/tasks.$taskId'
+import { Route as ApiWeightsSlugRouteImport } from './routes/api/weights.$slug'
 import { Route as StudioTuneSlugRouteImport } from './routes/studio_.tune.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -173,6 +174,11 @@ const ApiTasksTaskIdRoute = ApiTasksTaskIdRouteImport.update({
   path: '/$taskId',
   getParentRoute: () => ApiTasksRoute,
 } as any)
+const ApiWeightsSlugRoute = ApiWeightsSlugRouteImport.update({
+  id: '/api/weights/$slug',
+  path: '/api/weights/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioTuneSlugRoute = StudioTuneSlugRouteImport.update({
   id: '/studio_/tune/$slug',
   path: '/studio/tune/$slug',
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/api/scout/tick': typeof ApiScoutTickRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/api/weights/$slug': typeof ApiWeightsSlugRoute
   '/studio/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRoutesByTo {
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/api/scout/tick': typeof ApiScoutTickRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/api/weights/$slug': typeof ApiWeightsSlugRoute
   '/studio/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRoutesById {
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/api/scout/tick': typeof ApiScoutTickRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/api/weights/$slug': typeof ApiWeightsSlugRoute
   '/studio_/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRouteTypes {
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/api/scout/tick'
     | '/api/stripe/webhook'
     | '/api/tasks/$taskId'
+    | '/api/weights/$slug'
     | '/studio/tune/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/scout/tick'
     | '/api/stripe/webhook'
     | '/api/tasks/$taskId'
+    | '/api/weights/$slug'
     | '/studio/tune/$slug'
   id:
     | '__root__'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/api/scout/tick'
     | '/api/stripe/webhook'
     | '/api/tasks/$taskId'
+    | '/api/weights/$slug'
     | '/studio_/tune/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -388,6 +400,7 @@ export interface RootRouteChildren {
   ApiCoinbaseWebhookRoute: typeof ApiCoinbaseWebhookRoute
   ApiScoutTickRoute: typeof ApiScoutTickRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  ApiWeightsSlugRoute: typeof ApiWeightsSlugRoute
   StudioTuneSlugRoute: typeof StudioTuneSlugRoute
 }
 
@@ -582,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTasksTaskIdRouteImport
       parentRoute: typeof ApiTasksRoute
     }
+    '/api/weights/$slug': {
+      id: '/api/weights/$slug'
+      path: '/api/weights/$slug'
+      fullPath: '/api/weights/$slug'
+      preLoaderRoute: typeof ApiWeightsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio_/tune/$slug': {
       id: '/studio_/tune/$slug'
       path: '/studio/tune/$slug'
@@ -652,6 +672,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCoinbaseWebhookRoute: ApiCoinbaseWebhookRoute,
   ApiScoutTickRoute: ApiScoutTickRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  ApiWeightsSlugRoute: ApiWeightsSlugRoute,
   StudioTuneSlugRoute: StudioTuneSlugRoute,
 }
 export const routeTree = rootRouteImport

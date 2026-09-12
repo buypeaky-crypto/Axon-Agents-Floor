@@ -9,6 +9,7 @@ import { ensureCatalog } from "@/lib/server/catalog";
 import { assayListing, assayRefusal, assaySlug } from "@/lib/server/assay.server";
 import { maybeRunScout } from "@/lib/server/scout.server";
 import type { AgentRecord, AgentSummary, ReviewRecord } from "@/lib/types";
+import { weightFingerprint } from "@/lib/weight-artifact";
 import { weightFor } from "@/lib/weights";
 
 export const STARTING_CREDITS = 10000;
@@ -75,6 +76,7 @@ function parseEvals(raw: string | undefined): AgentRecord["evals"] {
 function mapAgent(row: AgentRow): AgentRecord {
   const sampleUser = row.sample_user?.trim() ?? "";
   const sampleReply = row.sample_reply?.trim() ?? "";
+  const print = weightFingerprint(row.slug, weightFor(row.slug, row.category));
   return {
     id: row.id,
     slug: row.slug,
@@ -106,6 +108,8 @@ function mapAgent(row: AgentRow): AgentRecord {
     evals: parseEvals(row.evals),
     sample: sampleUser && sampleReply ? { user: sampleUser, reply: sampleReply } : null,
     sellerBtc: row.seller_btc ?? "",
+    weightChecksum: print.checksum,
+    weightParameters: print.parameters,
   };
 }
 

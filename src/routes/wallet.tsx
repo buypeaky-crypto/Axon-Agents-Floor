@@ -169,8 +169,8 @@ function WalletPage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House ledger</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight">Wallet</h1>
         <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-          Top up with Bitcoin. Network fees sit on the sender. Cards are paused. Acquisitions take{" "}
-          {formatHouseTake()} for the house. Listing a specialist costs $1.
+          Top up with Bitcoin. Network fees sit on the sender. Acquisitions take{" "}
+          {formatHouseTake()} for the house. Listing a specialist costs $1. Bitcoin only.
         </p>
 
         <div className="mt-8 rounded-2xl bg-card p-6 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">

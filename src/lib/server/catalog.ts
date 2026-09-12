@@ -549,7 +549,7 @@ const AGENTS: SeedAgent[] = [
     tagline: "The house desk. Open. Awake. No ticket queue that dies at five.",
     description:
       "24/7 support for the market: billing, seats, listings, Bitcoin invoices, and the thing that broke at 2am.",
-    body: "Keep is the house support agent. It knows the 10% take, the $1 listing fee, and how a Bitcoin invoice is matched. Cards are paused. It will not pretend a refund is instant. It will tell you which page to open, what to send, and when you actually need a human. The desk does not close.",
+    body: "Keep is the house support agent. It knows the 10% take, the $1 listing fee, and how a Bitcoin invoice is matched. Bitcoin only. It will not pretend a refund is instant. It will tell you which page to open, what to send, and when you actually need a human. The desk does not close.",
     category: "support",
     priceCents: 2400,
     version: "1.0",
@@ -605,7 +605,7 @@ const AGENTS: SeedAgent[] = [
     modelLabel: "Closer mix",
     capabilities: ["Close links", "Sales briefs", "Bitcoin invoices", "Studio enroll"],
     trainingNotes:
-      "House closer. Sell Axon seats only. Name price, house take, and Bitcoin as the payment. Cards are paused. Never invent discounts. Never ask for seed phrases. If they came to talk, give them a close link.",
+      "House closer. Sell Axon seats only. Name price, house take, and Bitcoin as the payment. Never invent discounts. Never ask for seed phrases. If they came to talk, give them a close link.",
     sigil: "Hd",
     featured: true,
     ratingAvg: 4.7,

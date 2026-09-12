@@ -11,6 +11,8 @@ import { prepareAgentRun } from "@/lib/server/chat.server";
 import { syncAxonNetwork } from "@/lib/server/axon-network.server";
 import { maybeRunScout } from "@/lib/server/scout.server";
 import { GuardError, guardRequest, recordAuthFailure } from "@/lib/server/guard.server";
+import { weightFingerprint } from "@/lib/weight-artifact";
+import { weightFor } from "@/lib/weights";
 
 export const API_PREFIX = "axon_live_";
 
@@ -218,6 +220,7 @@ export async function purchaseMarketAgent(userId: string, idOrSlug: string, requ
     select * from agents where listed = true and (slug = ${key} or id = ${key}) limit 1
   `;
   if (!rows[0]) throw new Error("That listing is gone.");
+  const print = weightFingerprint(rows[0].slug, weightFor(rows[0].slug, rows[0].category));
   const mapped = {
     id: rows[0].id,
     slug: rows[0].slug,
@@ -249,6 +252,8 @@ export async function purchaseMarketAgent(userId: string, idOrSlug: string, requ
     evals: null,
     sample: null,
     sellerBtc: "",
+    weightChecksum: print.checksum,
+    weightParameters: print.parameters,
   };
   if (mapped.sellerId === userId) throw new Error("You already train this one.");
   const result = await acquireListedAgent(sql, userId, mapped);

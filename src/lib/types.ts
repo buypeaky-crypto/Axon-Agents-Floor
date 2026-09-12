@@ -29,9 +29,14 @@ export type AgentRecord = {
   evals: { tasks: number; pass: number; note: string } | null;
   sample: { user: string; reply: string } | null;
   sellerBtc: string;
+  weightChecksum: string;
+  weightParameters: number;
 };
 
-export type AgentSummary = Omit<AgentRecord, "body" | "trainingNotes" | "sample" | "weightCard">;
+export type AgentSummary = Omit<
+  AgentRecord,
+  "body" | "trainingNotes" | "sample" | "weightCard" | "weightChecksum" | "weightParameters"
+>;
 
 export type ReviewRecord = {
   id: number;

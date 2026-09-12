@@ -170,6 +170,15 @@ function AgentPage() {
                     Temp {agent.temperature.toFixed(2)} · {agent.maxTokens} tok
                   </p>
                 )}
+                <p className="mt-4 font-mono text-xs break-all text-subtle">
+                  {agent.weightParameters.toLocaleString()} adapter params · {agent.weightChecksum}
+                </p>
+                <a
+                  href={`/api/weights/${agent.slug}`}
+                  className="mt-4 inline-flex h-10 items-center rounded-md bg-secondary px-4 text-sm font-medium hover:bg-accent"
+                >
+                  Download {agent.weightsId || agent.modelLabel}.axonwgt.json
+                </a>
                 <p className="mt-6">{agent.trainingNotes || "The seller left the notes blank."}</p>
               </TabsContent>
               <TabsContent value="reviews" className="mt-6 max-w-2xl space-y-6">
