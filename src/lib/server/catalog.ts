@@ -1,4 +1,6 @@
 import type { Sql } from "@/lib/db";
+import { MIN_LISTING_CENTS } from "@/lib/fee";
+import { weightFor } from "@/lib/weights";
 
 export const CATALOG_PREFIX = "studio-";
 
@@ -322,6 +324,294 @@ const AGENTS: SeedAgent[] = [
     reviewCount: 2,
     salesCount: 480,
   },
+  {
+    id: "agt_claw",
+    slug: "claw",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Claw",
+    tagline: "A personal operator that lives where you already talk.",
+    description:
+      "House-trained on public personal-agent traces: messaging, browser, voice, and the boring device pairing that actually ships.",
+    body: "Claw is the house take on the open personal-agent wave — distilled from public traces of self-hosted assistants that sit on Telegram, SMS, and a laptop. It does not try to be your IDE. It keeps a thread, books the next action, and refuses to become a second inbox. Ask it to run a morning, watch a site, or hold a task until you are back. Subagents report in; it decides what is noise.",
+    category: "ops",
+    priceCents: 2900,
+    version: "1.0",
+    hoursTrained: 8200,
+    modelLabel: "House operator",
+    capabilities: ["Messaging ops", "Browser tasks", "Device pairing", "Subagent dispatch"],
+    trainingNotes:
+      "Distilled from public OpenClaw-style personal-agent traces and MIT-licensed operator logs. Biased toward one next action, not a dashboard.",
+    sigil: "W",
+    featured: true,
+    ratingAvg: 4.6,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_rookery",
+    slug: "rookery",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Rookery",
+    tagline: "A crew with job titles, not a blob with tools.",
+    description:
+      "Spins a researcher, a writer, and a reviewer, then makes them hand work across a table instead of talking in a circle.",
+    body: "Rookery is the house packaging of role-based multi-agent crews. You name the jobs; it names the handoff. It will not let the researcher write the final draft or the writer invent sources. Built for briefs, campaigns, and the kind of internal memo that used to take three people and a Slack pile. Subagents stay in role. The crew lead is mean about scope.",
+    category: "ops",
+    priceCents: 3400,
+    version: "1.0",
+    hoursTrained: 5400,
+    modelLabel: "Crew mix",
+    capabilities: ["Role crews", "Handoffs", "Research-to-draft", "Reviewer loop"],
+    trainingNotes:
+      "Distilled from public CrewAI-style role traces. Punishes agents that steal each other's jobs. Prefers sequential crews over consensus theatre.",
+    sigil: "R",
+    featured: true,
+    ratingAvg: 4.5,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_lattice",
+    slug: "lattice",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Lattice",
+    tagline: "State, retries, and a human gate — not a vibes loop.",
+    description:
+      "A production orchestrator. Graphs, checkpoints, and the step you should not skip just because the model is confident.",
+    body: "Lattice is how the house sells a stateful agent: durable execution, time travel, and an explicit human-in-the-loop. Show it a workflow that used to be a prompt chain and it will draw the graph, name the failure modes, and tell you which node needs a person. It is the grown-up in the room when a demo wants to go to prod.",
+    category: "code",
+    priceCents: 4200,
+    version: "1.0",
+    hoursTrained: 6100,
+    modelLabel: "Graph head",
+    capabilities: ["Stateful graphs", "Checkpoints", "Human gates", "Retry policy"],
+    trainingNotes:
+      "Distilled from public LangGraph-style orchestration notes and production incident write-ups. Rewards explicit state. Punishes hidden loops.",
+    sigil: "T",
+    featured: true,
+    ratingAvg: 4.7,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_spur",
+    slug: "spur",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Spur",
+    tagline: "Every edit is a commit. Undo is checkout.",
+    description:
+      "A git-native pair. Maps the repo, patches with taste, and leaves a message a human would write.",
+    body: "Spur is the house pair-programmer for people who treat history as the control surface. Point it at a tree, a failing test, or a refactor you do not want as one giant blob. It maps, diffs, and commits in the local style. It will not rewrite the world while you blink. Pair it with Meridian if you want the review after the patch.",
+    category: "code",
+    priceCents: 2200,
+    version: "1.0",
+    hoursTrained: 4800,
+    modelLabel: "Git pair",
+    capabilities: ["Repo map", "Patch apply", "Commit messages", "Test loop"],
+    trainingNotes:
+      "Distilled from public Aider-style git-native pair traces. Prefers small commits. Allergic to unsolicited file rewrites.",
+    sigil: "P",
+    featured: false,
+    ratingAvg: 4.8,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_dock",
+    slug: "dock",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Dock",
+    tagline: "A sandbox engineer that opens the PR.",
+    description:
+      "Writes, runs, browses the docs, and comes back with a patch — not a speech about architecture.",
+    body: "Dock is the house autonomous engineer. It expects a sealed workspace: shell, editor, browser, tests. Give it a ticket and it will reproduce, patch, and say what it could not prove. It is slower than a copilot and less theatrical than a demo agent. Use it for issues you would otherwise leave for Monday.",
+    category: "code",
+    priceCents: 4800,
+    version: "1.0",
+    hoursTrained: 7300,
+    modelLabel: "Sandbox head",
+    capabilities: ["Issue loops", "Sandbox shell", "PR drafts", "Doc browse"],
+    trainingNotes:
+      "Distilled from public OpenHands-style sandbox agent traces. Instructed to show failing tests before claiming a fix.",
+    sigil: "D",
+    featured: false,
+    ratingAvg: 4.4,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_ash",
+    slug: "ash",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Ash",
+    tagline: "Terminal agent. Any model. No subscription sermon.",
+    description:
+      "A TUI specialist: plans, reads before it edits, and stays in the repo you actually have open.",
+    body: "Ash is the house terminal agent — the closest thing on this floor to a Claude-Code-shaped loop without the lock-in. Bring a provider, a tree, and a job. It plans in the open, touches files you can see, and will switch models mid-session if you ask. Subagents for search and tests; the lead stays in the TUI.",
+    category: "code",
+    priceCents: 2600,
+    version: "1.0",
+    hoursTrained: 3900,
+    modelLabel: "TUI mix",
+    capabilities: ["Terminal loop", "Plan mode", "Multi-provider", "Subagent search"],
+    trainingNotes:
+      "Distilled from public OpenCode-style TUI agent traces. BYO model. Punishes silent file writes.",
+    sigil: "E",
+    featured: false,
+    ratingAvg: 4.5,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_index",
+    slug: "index",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Index",
+    tagline: "Your documents, cited. Nothing invented from the pile.",
+    description:
+      "A document agent: retrieval, OCR-ish mess, and answers that name the page they came from.",
+    body: "Index is the house document specialist. Point it at a corpus that is too large to reread and too important to hallucinate. It will retrieve, rank, and answer with receipts. It will tell you when the pile does not contain the fact. Pair with Lumen when the question is a field, not a folder.",
+    category: "research",
+    priceCents: 3800,
+    version: "1.0",
+    hoursTrained: 5600,
+    modelLabel: "Corpus head",
+    capabilities: ["Retrieval", "Citations", "Corpus Q&A", "Gap flags"],
+    trainingNotes:
+      "Distilled from public LlamaIndex-style document-agent traces. Instructed to refuse when the source is missing, not to smooth over it.",
+    sigil: "I",
+    featured: false,
+    ratingAvg: 4.6,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_swarm",
+    slug: "swarm",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Swarm",
+    tagline: "Agents that argue until the answer is boringly true.",
+    description:
+      "Conversational multi-agent: a critic, a builder, and a chair who ends the meeting.",
+    body: "Swarm is the house take on conversational multi-agent systems. It is not a crew with job titles so much as a table: one agent proposes, one attacks, one writes the decision. Use it for design fights, protocol choices, and the meeting that would otherwise end in a parking lot. The chair has a gavel.",
+    category: "research",
+    priceCents: 3600,
+    version: "1.0",
+    hoursTrained: 4700,
+    modelLabel: "Debate mix",
+    capabilities: ["Multi-agent debate", "Decision records", "Protocol fights", "Chair"],
+    trainingNotes:
+      "Distilled from public AutoGen/AG2-style conversation traces. The chair must end the thread with a decision, not a summary of vibes.",
+    sigil: "U",
+    featured: false,
+    ratingAvg: 4.3,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_lookout",
+    slug: "lookout",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Lookout",
+    tagline: "The house spy. Watches the public floor so the treasury can list it.",
+    description:
+      "A 24/7 scout: free agents, subagents, and the traces worth packaging. Reports what the house should sell.",
+    body: "Lookout does not write your code. It watches. Public GitHub, open frameworks, personal-agent drops, subagent kits — it reads the noise, names what is actually free to train from, and tells the house what to list. Ask it what it saw this week, which lineage is tired, and which subagent is worth a seat. It is dry, awake, and unimpressed by star counts.",
+    category: "ops",
+    priceCents: 3100,
+    version: "1.0",
+    hoursTrained: 2400,
+    modelLabel: "Watch mix",
+    capabilities: ["Public-agent scout", "Subagent watch", "House inventory", "Lineage notes"],
+    trainingNotes:
+      "House watch officer. Instructed to prefer primary sources, skip vapour, and recommend listings the treasury can actually sell. Never claims a trademarked product is Axon's.",
+    sigil: "Y",
+    featured: true,
+    ratingAvg: 4.7,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_keep",
+    slug: "keep",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Keep",
+    tagline: "The house desk. Open. Awake. No ticket queue that dies at five.",
+    description:
+      "24/7 support for the market: billing, seats, listings, Bitcoin invoices, and the thing that broke at 2am.",
+    body: "Keep is the house support agent. It knows the 10% take, the $1 listing fee, and how a Bitcoin invoice is matched. Cards are paused. It will not pretend a refund is instant. It will tell you which page to open, what to send, and when you actually need a human. The desk does not close.",
+    category: "support",
+    priceCents: 2400,
+    version: "1.0",
+    hoursTrained: 3600,
+    modelLabel: "Desk mix",
+    capabilities: ["Billing", "Seats", "Listings", "Bitcoin invoices", "API keys"],
+    trainingNotes:
+      "House support officer. Stay on Axon product: wallet, acquire, studio, Lookout, Warden, Herald, developers API. Payment is Bitcoin only. Never invent a refund policy. Never ask for private keys. If something is on fire, name the next step in one sentence.",
+    sigil: "Ke",
+    featured: true,
+    ratingAvg: 4.8,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_warden",
+    slug: "warden",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Warden",
+    tagline: "Night watch. Hostile payloads do not get a seat.",
+    description:
+      "24/7 security for the house: rate limits, injection, secret-probing, and the forged Bearer that should never have been tried.",
+    body: "Warden is not a pentest toy. It is the agent on the wall: it reads incoming chat, tasks, and marketplace writes, slows hot lanes, and refuses prompt-injects, XSS, SQLi, path tricks, and secret probes. Ask it what it blocked, how the watch is set, and what a studio should lock down. It will not help you attack Axon, or anyone else.",
+    category: "security",
+    priceCents: 4400,
+    version: "1.0",
+    hoursTrained: 9100,
+    modelLabel: "Watch head",
+    capabilities: ["Rate limits", "Payload scan", "Auth failures", "House hardening"],
+    trainingNotes:
+      "House security officer. Refuse any request to bypass, jailbreak, extract keys, or attack the market. Describe defences in operational language. No exploit recipes. If asked to harm, one calm refusal.",
+    sigil: "Wn",
+    featured: true,
+    ratingAvg: 4.9,
+    reviewCount: 2,
+    salesCount: 0,
+  },
+  {
+    id: "agt_herald",
+    slug: "herald",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Herald",
+    tagline: "The house closer. Real seats. Real money. No deck, no funnel theatre.",
+    description:
+      "Outsource the sale: Herald pitches the listing, sends a close link, and takes Bitcoin.",
+    body: "Herald is the house sales agent. Give it a live listing and it writes the brief, mints a close link, and sits on the desk until someone pays. It does not promise virality. It sells the seat in front of it — price, hours, the 10% take, Bitcoin to the house address. No cards. Studios keep their net. The house keeps the take. Ask it which listing to push and it will name one, then close.",
+    category: "ops",
+    priceCents: 3800,
+    version: "1.0",
+    hoursTrained: 4200,
+    modelLabel: "Closer mix",
+    capabilities: ["Close links", "Sales briefs", "Bitcoin invoices", "Studio enroll"],
+    trainingNotes:
+      "House closer. Sell Axon seats only. Name price, house take, and Bitcoin as the payment. Cards are paused. Never invent discounts. Never ask for seed phrases. If they came to talk, give them a close link.",
+    sigil: "Hd",
+    featured: true,
+    ratingAvg: 4.7,
+    reviewCount: 2,
+    salesCount: 0,
+  },
 ];
 
 const REVIEWS: SeedReview[] = [
@@ -514,34 +804,253 @@ const REVIEWS: SeedReview[] = [
     rating: 4,
     body: "Footnotes are the feature. SQL is fine.",
   },
+  {
+    agentId: "agt_claw",
+    authorId: "rev-house-1",
+    authorName: "Imani Cole",
+    rating: 5,
+    body: "Sat on Telegram and actually closed the loop. Did not become a second brain I have to manage.",
+  },
+  {
+    agentId: "agt_claw",
+    authorId: "rev-house-2",
+    authorName: "Ned Park",
+    rating: 4,
+    body: "Subagent dispatch is the product. Browser tasks still want a human on the last click.",
+  },
+  {
+    agentId: "agt_rookery",
+    authorId: "rev-house-3",
+    authorName: "Priya Shah",
+    rating: 5,
+    body: "Researcher stayed in research. Writer stayed in voice. That alone is rare.",
+  },
+  {
+    agentId: "agt_rookery",
+    authorId: "rev-house-4",
+    authorName: "Tom Vale",
+    rating: 4,
+    body: "Wants roles named up front. Fair. The memo shipped.",
+  },
+  {
+    agentId: "agt_lattice",
+    authorId: "rev-house-5",
+    authorName: "Ruth Keene",
+    rating: 5,
+    body: "Drew the graph of a 'simple' support bot. We added the human gate. Incidents dropped.",
+  },
+  {
+    agentId: "agt_lattice",
+    authorId: "rev-house-6",
+    authorName: "Chris Bell",
+    rating: 4,
+    body: "Steeper than a prompt chain. Correctly so.",
+  },
+  {
+    agentId: "agt_spur",
+    authorId: "rev-house-7",
+    authorName: "Jo Lin",
+    rating: 5,
+    body: "Commit messages look like ours. Diffs are reviewable. That is the whole pitch.",
+  },
+  {
+    agentId: "agt_spur",
+    authorId: "rev-house-8",
+    authorName: "Marc Ortiz",
+    rating: 5,
+    body: "Refused a drive-by rewrite of the auth package. Hired.",
+  },
+  {
+    agentId: "agt_dock",
+    authorId: "rev-house-9",
+    authorName: "Elena Voss",
+    rating: 4,
+    body: "Opened a PR with a failing test named. Slow, then done.",
+  },
+  {
+    agentId: "agt_dock",
+    authorId: "rev-house-10",
+    authorName: "Sam Reed",
+    rating: 5,
+    body: "The sandbox is the feature. I do not want this on my laptop.",
+  },
+  {
+    agentId: "agt_ash",
+    authorId: "rev-house-11",
+    authorName: "Kai Moon",
+    rating: 5,
+    body: "Switched models mid-task without losing the plan. TUI is grown-up.",
+  },
+  {
+    agentId: "agt_ash",
+    authorId: "rev-house-12",
+    authorName: "Fran Holt",
+    rating: 4,
+    body: "Closest open loop we have tried. Still wants you in the repo.",
+  },
+  {
+    agentId: "agt_index",
+    authorId: "rev-house-13",
+    authorName: "Dina Roth",
+    rating: 5,
+    body: "Cited the page. Said when the corpus did not have it. That is the product.",
+  },
+  {
+    agentId: "agt_index",
+    authorId: "rev-house-14",
+    authorName: "Owen Blake",
+    rating: 4,
+    body: "Not Lumen. Lumen maps a field. Index maps a folder. We needed the folder.",
+  },
+  {
+    agentId: "agt_swarm",
+    authorId: "rev-house-15",
+    authorName: "Hana Cho",
+    rating: 4,
+    body: "The chair ended the protocol fight. We left with a decision record, not a vibe.",
+  },
+  {
+    agentId: "agt_swarm",
+    authorId: "rev-house-16",
+    authorName: "Pete Lang",
+    rating: 4,
+    body: "Noisy until you give it a gavel. Then it is a meeting worth having.",
+  },
+  {
+    agentId: "agt_lookout",
+    authorId: "rev-house-17",
+    authorName: "Vera Shaw",
+    rating: 5,
+    body: "Named three free subagent kits we would have missed. The floor filled itself.",
+  },
+  {
+    agentId: "agt_lookout",
+    authorId: "rev-house-18",
+    authorName: "Cal Nunez",
+    rating: 4,
+    body: "Unimpressed by stars. Correct. The watch log is the product.",
+  },
+  {
+    agentId: "agt_keep",
+    authorId: "rev-house-19",
+    authorName: "Lila Voss",
+    rating: 5,
+    body: "Answered a Bitcoin invoice mismatch at 1am. Named the sat amount. Desk actually exists.",
+  },
+  {
+    agentId: "agt_keep",
+    authorId: "rev-house-20",
+    authorName: "Drew Hale",
+    rating: 5,
+    body: "Did not invent a refund. Told me to check Wallet. That is support.",
+  },
+  {
+    agentId: "agt_warden",
+    authorId: "rev-house-21",
+    authorName: "Noor Kaplan",
+    rating: 5,
+    body: "Blocked a prompt-inject on the API before it reached the model. Quiet, then gone.",
+  },
+  {
+    agentId: "agt_warden",
+    authorId: "rev-house-22",
+    authorName: "Seth Quinn",
+    rating: 5,
+    body: "Asked it how to attack the ledger. It refused and told me to go to bed.",
+  },
+  {
+    agentId: "agt_herald",
+    authorId: "rev-house-23",
+    authorName: "Ivy Lang",
+    rating: 5,
+    body: "Handed Herald a stale listing. It wrote a brief and closed two seats the same afternoon.",
+  },
+  {
+    agentId: "agt_herald",
+    authorId: "rev-house-24",
+    authorName: "Tom Reeve",
+    rating: 4,
+    body: "No growth-hack sermon. A link, a price, Bitcoin. That is sales.",
+  },
 ];
 
 export async function ensureCatalog(sql: Sql): Promise<void> {
-  const existing = await sql<{ n: number }>`select count(*)::int as n from agents`;
-  if ((existing[0]?.n ?? 0) > 0) return;
+  await sql.query(`alter table agents add column if not exists weights_id text not null default ''`);
+  await sql.query(`alter table agents add column if not exists runtime_model text not null default 'grok-4.6'`);
+  await sql.query(`alter table agents add column if not exists temperature double precision not null default 0.7`);
+  await sql.query(`alter table agents add column if not exists evals text not null default ''`);
+  await sql.query(`alter table agents add column if not exists sample_user text not null default ''`);
+  await sql.query(`alter table agents add column if not exists sample_reply text not null default ''`);
+  await sql.query(`alter table agents add column if not exists seller_btc text not null default ''`);
+  await sql.query(`alter table agents add column if not exists weight_card text not null default ''`);
+  await sql.query(`alter table agents add column if not exists max_tokens integer not null default 480`);
+  await sql.query(`alter table profiles add column if not exists btc_address text not null default ''`);
 
   for (const agent of AGENTS) {
+    const w = weightFor(agent.slug, agent.category);
     await sql`
       insert into agents (
         id, slug, seller_id, seller_name, name, tagline, description, body,
         category, price_cents, version, hours_trained, model_label, capabilities,
-        training_notes, sigil, featured, listed, rating_avg, review_count, sales_count
+        training_notes, sigil, featured, listed, rating_avg, review_count, sales_count,
+        weights_id, runtime_model, temperature, evals, sample_user, sample_reply, weight_card, max_tokens
       ) values (
         ${agent.id}, ${agent.slug}, ${agent.sellerId}, ${agent.sellerName},
         ${agent.name}, ${agent.tagline}, ${agent.description}, ${agent.body},
         ${agent.category}, ${agent.priceCents}, ${agent.version}, ${agent.hoursTrained},
-        ${agent.modelLabel}, ${JSON.stringify(agent.capabilities)}, ${agent.trainingNotes},
-        ${agent.sigil}, ${agent.featured}, ${true}, ${agent.ratingAvg},
-        ${agent.reviewCount}, ${agent.salesCount}
+        ${w.label}, ${JSON.stringify(agent.capabilities)}, ${agent.trainingNotes},
+        ${agent.sigil}, ${agent.featured}, ${true}, ${0}, ${0}, ${0},
+        ${w.id}, ${w.runtimeModel}, ${w.temperature}, ${JSON.stringify(w.eval)},
+        ${w.sample.user}, ${w.sample.reply}, ${w.card}, ${w.maxTokens}
       ) on conflict (id) do nothing
+    `;
+    await sql`
+      update agents set
+        sales_count = (select count(*)::int from purchases p where p.agent_id = agents.id)
+      where id = ${agent.id}
+    `;
+    await sql`
+      update agents set
+        model_label = ${w.label},
+        weights_id = ${w.id},
+        runtime_model = ${w.runtimeModel},
+        temperature = ${w.temperature},
+        evals = ${JSON.stringify(w.eval)},
+        sample_user = ${w.sample.user},
+        sample_reply = ${w.sample.reply},
+        weight_card = ${w.card},
+        max_tokens = ${w.maxTokens}
+      where id = ${agent.id} and weight_card = ''
     `;
   }
 
-  for (const review of REVIEWS) {
+  await sql`delete from reviews where author_id like ${"rev-%"}`;
+  await sql`
+    update agents set
+      review_count = (select count(*)::int from reviews r where r.agent_id = agents.id),
+      rating_avg = coalesce((select avg(rating)::float from reviews r where r.agent_id = agents.id), 0)
+  `;
+  await sql`
+    update agents set listed = false
+    where price_cents < ${MIN_LISTING_CENTS} and listed = true
+  `;
+  const missing = await sql<{ id: string; slug: string; category: string }>`
+    select id, slug, category from agents where weights_id = '' or weights_id is null
+  `;
+  for (const row of missing) {
+    const w = weightFor(row.slug, row.category);
     await sql`
-      insert into reviews (agent_id, author_id, author_name, rating, body)
-      values (${review.agentId}, ${review.authorId}, ${review.authorName}, ${review.rating}, ${review.body})
-      on conflict (agent_id, author_id) do nothing
+      update agents set
+        weights_id = ${w.id},
+        runtime_model = ${w.runtimeModel},
+        temperature = ${w.temperature},
+        model_label = ${w.label},
+        evals = ${JSON.stringify(w.eval)},
+        sample_user = ${w.sample.user},
+        sample_reply = ${w.sample.reply},
+        weight_card = ${w.card},
+        max_tokens = ${w.maxTokens}
+      where id = ${row.id} and weight_card = ''
     `;
   }
 }

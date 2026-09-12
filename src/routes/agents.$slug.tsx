@@ -13,12 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { categoryLabel } from "@/lib/categories";
-import { formatFeePercent, sellerNetCents } from "@/lib/fee";
+import { formatHouseTake, sellerNetCents } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import { queryKeys } from "@/lib/query";
-import { addReview, buyAgent, getAgent, getMyRelation } from "@/lib/server/market";
-import { emitWallet } from "@/lib/wallet";
+import { addReview, getAgent, getMyRelation } from "@/lib/server/market";
+import { createCryptoCharge, getCryptoStatus } from "@/lib/server/crypto";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/agents/$slug")({
@@ -53,37 +53,20 @@ function AgentPage() {
     enabled: Boolean(user),
   });
   const relation = relationQuery.data ?? null;
+  const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
 
-  const acquire = useMutation({
-    mutationFn: () => buyAgent({ data: agent.id }),
+  const payCrypto = useMutation({
+    mutationFn: () => createCryptoCharge({ data: { agentId: agent.id } }),
     onSuccess: (result) => {
-      emitWallet(result.credits);
-      if (user) {
-        queryClient.setQueryData(queryKeys.profile(user.id), (prev: { credits: number } | undefined) =>
-          prev ? { ...prev, credits: result.credits } : prev,
-        );
-        queryClient.setQueryData(queryKeys.relation(user.id, agent.id), (prev: Relation | undefined) =>
-          prev
-            ? { ...prev, purchased: true, credits: result.credits }
-            : {
-                purchased: true,
-                isSeller: false,
-                hasReviewed: false,
-                credits: result.credits,
-                trialTurns: 0,
-                trialLimit: 3,
-              },
-        );
-        void queryClient.invalidateQueries({ queryKey: queryKeys.library(user.id) });
-      }
-      toast.success(result.already ? "Already in your library." : `${agent.name} is yours.`);
+      sessionStorage.setItem("axon-crypto-charge", result.chargeId);
+      window.location.assign(result.url);
     },
     onError: (err) => {
       if (isUnauthorized(err)) {
         setNeedSignIn(true);
         return;
       }
-      toast.error(err instanceof Error ? err.message : "Could not complete the sale.");
+      toast.error(err instanceof Error ? err.message : "Could not start crypto checkout.");
     },
   });
 
@@ -106,7 +89,6 @@ function AgentPage() {
 
   const owned = Boolean(relation?.purchased || relation?.isSeller);
   const canReview = Boolean(relation?.purchased && !relation?.hasReviewed);
-  const buying = acquire.isPending;
 
   return (
     <SiteShell>
@@ -123,6 +105,13 @@ function AgentPage() {
                   {agent.name}
                 </h1>
                 <p className="mt-2 max-w-xl text-base text-muted-foreground">{agent.tagline}</p>
+                {user && (relation?.isSeller || agent.sellerId.startsWith("studio-")) && (
+                  <Button asChild size="sm" variant="secondary" className="mt-3">
+                    <Link to="/studio/tune/$slug" params={{ slug: agent.slug }}>
+                      Tune weights
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -137,13 +126,20 @@ function AgentPage() {
             <Tabs defaultValue="dossier" className="mt-10">
               <TabsList>
                 <TabsTrigger value="dossier">Dossier</TabsTrigger>
-                <TabsTrigger value="notes">Training</TabsTrigger>
+                <TabsTrigger value="notes">Weights</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
                 <TabsTrigger value="run">Run</TabsTrigger>
               </TabsList>
               <TabsContent value="dossier" className="mt-6 max-w-2xl space-y-4 text-sm leading-relaxed text-foreground/90">
                 <p>{agent.description}</p>
                 <p className="text-muted-foreground">{agent.body}</p>
+                {agent.sample && (
+                  <div className="rounded-2xl bg-secondary p-4">
+                    <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Sample run</p>
+                    <p className="mt-2 text-sm">You: {agent.sample.user}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{agent.name}: {agent.sample.reply}</p>
+                  </div>
+                )}
               </TabsContent>
               <TabsContent value="notes" className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                 <dl className="grid grid-cols-2 gap-4 text-foreground">
@@ -157,13 +153,23 @@ function AgentPage() {
                   </div>
                   <div>
                     <dt className="text-xs tracking-wide text-subtle uppercase">Weights</dt>
-                    <dd className="mt-1">{agent.modelLabel}</dd>
+                    <dd className="mt-1 font-mono text-xs">{agent.weightsId || agent.modelLabel}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs tracking-wide text-subtle uppercase">Studio</dt>
-                    <dd className="mt-1">{agent.sellerName}</dd>
+                    <dt className="text-xs tracking-wide text-subtle uppercase">Head</dt>
+                    <dd className="mt-1">{agent.modelLabel}</dd>
                   </div>
                 </dl>
+                {agent.evals && (
+                  <p className="mt-6 text-foreground">
+                    Eval {agent.evals.pass}/{agent.evals.tasks}. {agent.evals.note}
+                  </p>
+                )}
+                {Number.isFinite(agent.temperature) && (
+                  <p className="mt-3 font-mono text-xs text-subtle">
+                    Temp {agent.temperature.toFixed(2)} · {agent.maxTokens} tok
+                  </p>
+                )}
                 <p className="mt-6">{agent.trainingNotes || "The seller left the notes blank."}</p>
               </TabsContent>
               <TabsContent value="reviews" className="mt-6 max-w-2xl space-y-6">
@@ -219,7 +225,7 @@ function AgentPage() {
                   agent={agent}
                   purchased={owned}
                   onNeedSignIn={() => setNeedSignIn(true)}
-                  onAcquire={() => acquire.mutate()}
+                  onAcquire={() => payCrypto.mutate()}
                 />
               </TabsContent>
             </Tabs>
@@ -234,8 +240,9 @@ function AgentPage() {
               </span>
             </p>
             <p className="mt-3 text-xs leading-relaxed text-subtle">
-              You pay {formatCredits(agent.priceCents)}. The studio keeps{" "}
-              {formatCredits(sellerNetCents(agent.priceCents))} after Axon's {formatFeePercent()} take.
+              Bitcoin only. Pay {formatCredits(agent.priceCents)} in exact sats on the invoice, to the house
+              address. Network fees sit on you. The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after
+              Axon's {formatHouseTake()} take.
             </p>
             <div className="mt-6 space-y-2">
               {owned ? (
@@ -247,22 +254,24 @@ function AgentPage() {
               ) : (
                 <Button
                   className="w-full"
-                  disabled={buying || isPending}
+                  disabled={payCrypto.isPending || isPending || !crypto.data?.configured}
                   onClick={() => {
                     if (!user) {
                       setNeedSignIn(true);
                       return;
                     }
-                    acquire.mutate();
+                    payCrypto.mutate();
                   }}
                 >
-                  {buying ? "Settling…" : user ? "Acquire" : "Sign in to acquire"}
+                  {payCrypto.isPending
+                    ? "Opening invoice…"
+                    : user
+                      ? `Pay ${formatCredits(agent.priceCents)} with Bitcoin`
+                      : "Sign in to acquire"}
                 </Button>
               )}
-              {relation && !owned && (
-                <p className="text-center text-xs text-subtle">
-                  Ledger {formatCredits(relation.credits)}
-                </p>
+              {relation && !owned && !crypto.data?.configured && (
+                <p className="text-center text-xs text-subtle">Bitcoin invoices are standing up.</p>
               )}
             </div>
             <dl className="mt-6 space-y-2 text-sm">

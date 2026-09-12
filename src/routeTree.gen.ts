@@ -10,19 +10,45 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevelopersRouteImport } from './routes/developers'
+import { Route as HeraldRouteImport } from './routes/herald'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LookoutRouteImport } from './routes/lookout'
 import { Route as StudioRouteImport } from './routes/studio'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as WardenRouteImport } from './routes/warden'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
+import { Route as ApiAgentsRouteImport } from './routes/api/agents'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiTasksRouteImport } from './routes/api/tasks'
+import { Route as BtcIdRouteImport } from './routes/btc_.$id'
+import { Route as HeraldCodeRouteImport } from './routes/herald.$code'
 import { Route as LibrarySlugRouteImport } from './routes/library_.$slug'
 import { Route as StudioNewRouteImport } from './routes/studio_.new'
+import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents.$agentId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCoinbaseWebhookRouteImport } from './routes/api/coinbase/webhook'
+import { Route as ApiScoutTickRouteImport } from './routes/api/scout/tick'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
+import { Route as ApiTasksTaskIdRouteImport } from './routes/api/tasks.$taskId'
+import { Route as StudioTuneSlugRouteImport } from './routes/studio_.tune.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopersRoute = DevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HeraldRoute = HeraldRouteImport.update({
+  id: '/herald',
+  path: '/herald',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstallRoute = InstallRouteImport.update({
@@ -40,9 +66,29 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LookoutRoute = LookoutRouteImport.update({
+  id: '/lookout',
+  path: '/lookout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WardenRoute = WardenRouteImport.update({
+  id: '/warden',
+  path: '/warden',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsSlugRoute = AgentsSlugRouteImport.update({
@@ -50,10 +96,30 @@ const AgentsSlugRoute = AgentsSlugRouteImport.update({
   path: '/agents/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentsRoute = ApiAgentsRouteImport.update({
+  id: '/api/agents',
+  path: '/api/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTasksRoute = ApiTasksRouteImport.update({
+  id: '/api/tasks',
+  path: '/api/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BtcIdRoute = BtcIdRouteImport.update({
+  id: '/btc_/$id',
+  path: '/btc/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HeraldCodeRoute = HeraldCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => HeraldRoute,
 } as any)
 const LibrarySlugRoute = LibrarySlugRouteImport.update({
   id: '/library_/$slug',
@@ -65,99 +131,238 @@ const StudioNewRoute = StudioNewRouteImport.update({
   path: '/studio/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentsAgentIdRoute = ApiAgentsAgentIdRouteImport.update({
+  id: '/$agentId',
+  path: '/$agentId',
+  getParentRoute: () => ApiAgentsRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCoinbaseWebhookRoute = ApiCoinbaseWebhookRouteImport.update({
+  id: '/api/coinbase/webhook',
+  path: '/api/coinbase/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScoutTickRoute = ApiScoutTickRouteImport.update({
+  id: '/api/scout/tick',
+  path: '/api/scout/tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTasksTaskIdRoute = ApiTasksTaskIdRouteImport.update({
+  id: '/$taskId',
+  path: '/$taskId',
+  getParentRoute: () => ApiTasksRoute,
+} as any)
+const StudioTuneSlugRoute = StudioTuneSlugRouteImport.update({
+  id: '/studio_/tune/$slug',
+  path: '/studio/tune/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/developers': typeof DevelopersRoute
+  '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
+  '/support': typeof SupportRoute
+  '/wallet': typeof WalletRoute
+  '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/tasks': typeof ApiTasksRouteWithChildren
+  '/btc/$id': typeof BtcIdRoute
+  '/herald/$code': typeof HeraldCodeRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/studio/new': typeof StudioNewRoute
+  '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/coinbase/webhook': typeof ApiCoinbaseWebhookRoute
+  '/api/scout/tick': typeof ApiScoutTickRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/studio/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/developers': typeof DevelopersRoute
+  '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
+  '/support': typeof SupportRoute
+  '/wallet': typeof WalletRoute
+  '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/tasks': typeof ApiTasksRouteWithChildren
+  '/btc/$id': typeof BtcIdRoute
+  '/herald/$code': typeof HeraldCodeRoute
   '/library/$slug': typeof LibrarySlugRoute
   '/studio/new': typeof StudioNewRoute
+  '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/coinbase/webhook': typeof ApiCoinbaseWebhookRoute
+  '/api/scout/tick': typeof ApiScoutTickRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/studio/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/developers': typeof DevelopersRoute
+  '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
+  '/support': typeof SupportRoute
+  '/wallet': typeof WalletRoute
+  '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/tasks': typeof ApiTasksRouteWithChildren
+  '/btc_/$id': typeof BtcIdRoute
+  '/herald/$code': typeof HeraldCodeRoute
   '/library_/$slug': typeof LibrarySlugRoute
   '/studio_/new': typeof StudioNewRoute
+  '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/coinbase/webhook': typeof ApiCoinbaseWebhookRoute
+  '/api/scout/tick': typeof ApiScoutTickRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRoute
+  '/studio_/tune/$slug': typeof StudioTuneSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/developers'
+    | '/herald'
     | '/install'
     | '/library'
     | '/login'
+    | '/lookout'
     | '/studio'
+    | '/support'
+    | '/wallet'
+    | '/warden'
     | '/agents/$slug'
+    | '/api/agents'
     | '/api/chat'
+    | '/api/tasks'
+    | '/btc/$id'
+    | '/herald/$code'
     | '/library/$slug'
     | '/studio/new'
+    | '/api/agents/$agentId'
     | '/api/auth/$'
+    | '/api/coinbase/webhook'
+    | '/api/scout/tick'
+    | '/api/stripe/webhook'
+    | '/api/tasks/$taskId'
+    | '/studio/tune/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/developers'
+    | '/herald'
     | '/install'
     | '/library'
     | '/login'
+    | '/lookout'
     | '/studio'
+    | '/support'
+    | '/wallet'
+    | '/warden'
     | '/agents/$slug'
+    | '/api/agents'
     | '/api/chat'
+    | '/api/tasks'
+    | '/btc/$id'
+    | '/herald/$code'
     | '/library/$slug'
     | '/studio/new'
+    | '/api/agents/$agentId'
     | '/api/auth/$'
+    | '/api/coinbase/webhook'
+    | '/api/scout/tick'
+    | '/api/stripe/webhook'
+    | '/api/tasks/$taskId'
+    | '/studio/tune/$slug'
   id:
     | '__root__'
     | '/'
+    | '/developers'
+    | '/herald'
     | '/install'
     | '/library'
     | '/login'
+    | '/lookout'
     | '/studio'
+    | '/support'
+    | '/wallet'
+    | '/warden'
     | '/agents/$slug'
+    | '/api/agents'
     | '/api/chat'
+    | '/api/tasks'
+    | '/btc_/$id'
+    | '/herald/$code'
     | '/library_/$slug'
     | '/studio_/new'
+    | '/api/agents/$agentId'
     | '/api/auth/$'
+    | '/api/coinbase/webhook'
+    | '/api/scout/tick'
+    | '/api/stripe/webhook'
+    | '/api/tasks/$taskId'
+    | '/studio_/tune/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevelopersRoute: typeof DevelopersRoute
+  HeraldRoute: typeof HeraldRouteWithChildren
   InstallRoute: typeof InstallRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  LookoutRoute: typeof LookoutRoute
   StudioRoute: typeof StudioRoute
+  SupportRoute: typeof SupportRoute
+  WalletRoute: typeof WalletRoute
+  WardenRoute: typeof WardenRoute
   AgentsSlugRoute: typeof AgentsSlugRoute
+  ApiAgentsRoute: typeof ApiAgentsRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
+  ApiTasksRoute: typeof ApiTasksRouteWithChildren
+  BtcIdRoute: typeof BtcIdRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
   StudioNewRoute: typeof StudioNewRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCoinbaseWebhookRoute: typeof ApiCoinbaseWebhookRoute
+  ApiScoutTickRoute: typeof ApiScoutTickRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  StudioTuneSlugRoute: typeof StudioTuneSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -167,6 +372,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developers': {
+      id: '/developers'
+      path: '/developers'
+      fullPath: '/developers'
+      preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/herald': {
+      id: '/herald'
+      path: '/herald'
+      fullPath: '/herald'
+      preLoaderRoute: typeof HeraldRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/install': {
@@ -190,11 +409,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lookout': {
+      id: '/lookout'
+      path: '/lookout'
+      fullPath: '/lookout'
+      preLoaderRoute: typeof LookoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio': {
       id: '/studio'
       path: '/studio'
       fullPath: '/studio'
       preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warden': {
+      id: '/warden'
+      path: '/warden'
+      fullPath: '/warden'
+      preLoaderRoute: typeof WardenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents/$slug': {
@@ -204,12 +451,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/agents': {
+      id: '/api/agents'
+      path: '/api/agents'
+      fullPath: '/api/agents'
+      preLoaderRoute: typeof ApiAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/tasks': {
+      id: '/api/tasks'
+      path: '/api/tasks'
+      fullPath: '/api/tasks'
+      preLoaderRoute: typeof ApiTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/btc_/$id': {
+      id: '/btc_/$id'
+      path: '/btc/$id'
+      fullPath: '/btc/$id'
+      preLoaderRoute: typeof BtcIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/herald/$code': {
+      id: '/herald/$code'
+      path: '/$code'
+      fullPath: '/herald/$code'
+      preLoaderRoute: typeof HeraldCodeRouteImport
+      parentRoute: typeof HeraldRoute
     }
     '/library_/$slug': {
       id: '/library_/$slug'
@@ -225,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/agents/$agentId': {
+      id: '/api/agents/$agentId'
+      path: '/$agentId'
+      fullPath: '/api/agents/$agentId'
+      preLoaderRoute: typeof ApiAgentsAgentIdRouteImport
+      parentRoute: typeof ApiAgentsRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -232,20 +514,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/coinbase/webhook': {
+      id: '/api/coinbase/webhook'
+      path: '/api/coinbase/webhook'
+      fullPath: '/api/coinbase/webhook'
+      preLoaderRoute: typeof ApiCoinbaseWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scout/tick': {
+      id: '/api/scout/tick'
+      path: '/api/scout/tick'
+      fullPath: '/api/scout/tick'
+      preLoaderRoute: typeof ApiScoutTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tasks/$taskId': {
+      id: '/api/tasks/$taskId'
+      path: '/$taskId'
+      fullPath: '/api/tasks/$taskId'
+      preLoaderRoute: typeof ApiTasksTaskIdRouteImport
+      parentRoute: typeof ApiTasksRoute
+    }
+    '/studio_/tune/$slug': {
+      id: '/studio_/tune/$slug'
+      path: '/studio/tune/$slug'
+      fullPath: '/studio/tune/$slug'
+      preLoaderRoute: typeof StudioTuneSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface HeraldRouteChildren {
+  HeraldCodeRoute: typeof HeraldCodeRoute
+}
+
+const HeraldRouteChildren: HeraldRouteChildren = {
+  HeraldCodeRoute: HeraldCodeRoute,
+}
+
+const HeraldRouteWithChildren =
+  HeraldRoute._addFileChildren(HeraldRouteChildren)
+
+interface ApiAgentsRouteChildren {
+  ApiAgentsAgentIdRoute: typeof ApiAgentsAgentIdRoute
+}
+
+const ApiAgentsRouteChildren: ApiAgentsRouteChildren = {
+  ApiAgentsAgentIdRoute: ApiAgentsAgentIdRoute,
+}
+
+const ApiAgentsRouteWithChildren = ApiAgentsRoute._addFileChildren(
+  ApiAgentsRouteChildren,
+)
+
+interface ApiTasksRouteChildren {
+  ApiTasksTaskIdRoute: typeof ApiTasksTaskIdRoute
+}
+
+const ApiTasksRouteChildren: ApiTasksRouteChildren = {
+  ApiTasksTaskIdRoute: ApiTasksTaskIdRoute,
+}
+
+const ApiTasksRouteWithChildren = ApiTasksRoute._addFileChildren(
+  ApiTasksRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevelopersRoute: DevelopersRoute,
+  HeraldRoute: HeraldRouteWithChildren,
   InstallRoute: InstallRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  LookoutRoute: LookoutRoute,
   StudioRoute: StudioRoute,
+  SupportRoute: SupportRoute,
+  WalletRoute: WalletRoute,
+  WardenRoute: WardenRoute,
   AgentsSlugRoute: AgentsSlugRoute,
+  ApiAgentsRoute: ApiAgentsRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
+  ApiTasksRoute: ApiTasksRouteWithChildren,
+  BtcIdRoute: BtcIdRoute,
   LibrarySlugRoute: LibrarySlugRoute,
   StudioNewRoute: StudioNewRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCoinbaseWebhookRoute: ApiCoinbaseWebhookRoute,
+  ApiScoutTickRoute: ApiScoutTickRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  StudioTuneSlugRoute: StudioTuneSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

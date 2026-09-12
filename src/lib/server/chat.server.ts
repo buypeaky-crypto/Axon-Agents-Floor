@@ -3,6 +3,7 @@ import { parseCapabilities } from "@/lib/format";
 import { ensureCatalog } from "@/lib/server/catalog";
 import { TRIAL_TURNS, ensureProfile } from "@/lib/server/market";
 import type { ChatMessage } from "@/lib/types";
+import { weightFor, weightSystemBlock } from "@/lib/weights";
 
 export const RUNTIME_MODEL = "grok-4.6";
 
@@ -16,13 +17,14 @@ export type PreparedRun =
         model: string;
         max_tokens: number;
         temperature: number;
-        stream: true;
+        stream: boolean;
         messages: { role: "system" | "user" | "assistant"; content: string }[];
       };
     }
   | { ok: false; error: string; trialSpent?: boolean };
 
 function systemPrompt(agent: {
+  slug: string;
   name: string;
   tagline: string;
   category: string;
@@ -31,13 +33,22 @@ function systemPrompt(agent: {
   capabilities: unknown;
   body: string;
   seller_name: string;
+  weights_id?: string;
+  weight_card?: string;
+  model_label?: string;
 }): string {
   const caps = parseCapabilities(agent.capabilities).join(", ");
+  const weights = weightSystemBlock(agent.slug, agent.category, {
+    id: agent.weights_id,
+    label: agent.model_label,
+    card: agent.weight_card,
+  });
   return [
     `You are ${agent.name}, a trained specialist agent listed on Axon by ${agent.seller_name}.`,
     `Tagline: ${agent.tagline}`,
     `Discipline: ${agent.category}. Hours trained: ${agent.hours_trained}.`,
     caps ? `Capabilities: ${caps}.` : "",
+    weights,
     agent.training_notes ? `Training notes: ${agent.training_notes}` : "",
     `Dossier: ${agent.body}`,
     "Stay in character. Be precise, opinionated, and useful.",
@@ -78,6 +89,7 @@ export async function prepareAgentRun(
   userId: string,
   agentId: string,
   messages: ChatMessage[],
+  stream = true,
 ): Promise<PreparedRun> {
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
@@ -90,6 +102,7 @@ export async function prepareAgentRun(
 
   const agents = await sql<{
     id: string;
+    slug: string;
     name: string;
     tagline: string;
     category: string;
@@ -98,8 +111,15 @@ export async function prepareAgentRun(
     capabilities: unknown;
     body: string;
     seller_name: string;
+    runtime_model: string | null;
+    temperature: number | string | null;
+    weights_id: string | null;
+    weight_card: string | null;
+    max_tokens: number | string | null;
+    model_label: string | null;
   }>`
-    select id, name, tagline, category, hours_trained, training_notes, capabilities, body, seller_name
+    select id, slug, name, tagline, category, hours_trained, training_notes, capabilities, body, seller_name,
+           runtime_model, temperature, weights_id, weight_card, max_tokens, model_label
     from agents where id = ${agentId} limit 1
   `;
   const agent = agents[0];
@@ -113,7 +133,8 @@ export async function prepareAgentRun(
   const isSeller = await sql<{ id: string }>`
     select id from agents where id = ${agentId} and seller_id = ${userId} limit 1
   `;
-  const purchased = owned.length > 0 || isSeller.length > 0;
+  const houseDesk = agent.slug === "keep" || agent.id === "agt_keep" || agent.slug === "herald" || agent.id === "agt_herald";
+  const purchased = owned.length > 0 || isSeller.length > 0 || houseDesk;
 
   if (!purchased) {
     const trial = await sql<{ turns: number }>`
@@ -142,6 +163,11 @@ export async function prepareAgentRun(
 
   const userTurns = messages.filter((m) => m.role === "user").length;
   const remaining = purchased ? null : Math.max(0, TRIAL_TURNS - userTurns);
+  const w = weightFor(agent.slug, agent.category);
+  const model = (agent.runtime_model || w.runtimeModel || RUNTIME_MODEL).trim() || RUNTIME_MODEL;
+  const temperature = Number(agent.temperature ?? w.temperature);
+  const storedMax = Number(agent.max_tokens ?? w.maxTokens);
+  const maxTokens = purchased ? storedMax : Math.min(320, storedMax);
 
   return {
     ok: true,
@@ -149,12 +175,17 @@ export async function prepareAgentRun(
     trialRemaining: remaining,
     apiKey,
     payload: {
-      model: RUNTIME_MODEL,
-      max_tokens: purchased ? 480 : 320,
-      temperature: 0.7,
-      stream: true,
+      model,
+      max_tokens: maxTokens,
+      temperature: Number.isFinite(temperature) ? temperature : w.temperature,
+      stream,
       messages: [
-        { role: "system", content: systemPrompt(agent) },
+        { role: "system", content: systemPrompt({
+          ...agent,
+          weights_id: agent.weights_id ?? undefined,
+          weight_card: agent.weight_card ?? undefined,
+          model_label: agent.model_label ?? undefined,
+        }) },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
       ],
     },

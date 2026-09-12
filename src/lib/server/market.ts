@@ -1,11 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { isBtcAddress } from "@/lib/btc";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { getSql, type Sql } from "@/lib/db";
+import { FEE_BPS, LISTING_FEE_CENTS, MIN_LISTING_CENTS, houseFeeCents, sellerNetCents } from "@/lib/fee";
 import { parseCapabilities } from "@/lib/format";
-import { FEE_BPS, houseFeeCents, sellerNetCents } from "@/lib/fee";
 import { ensureCatalog } from "@/lib/server/catalog";
+import { maybeRunScout } from "@/lib/server/scout.server";
 import type { AgentRecord, AgentSummary, ReviewRecord } from "@/lib/types";
+import { weightFor } from "@/lib/weights";
 
 export const STARTING_CREDITS = 10000;
 export const TRIAL_TURNS = 3;
@@ -36,6 +39,15 @@ type AgentRow = {
   review_count: number;
   sales_count: number;
   created_at: string | Date;
+  weights_id?: string;
+  runtime_model?: string;
+  temperature?: number | string;
+  evals?: string;
+  sample_user?: string;
+  sample_reply?: string;
+  seller_btc?: string;
+  weight_card?: string;
+  max_tokens?: number | string;
 };
 
 function asIso(value: unknown): string {
@@ -48,7 +60,20 @@ function asBool(value: unknown): boolean {
   return value === true || value === "t" || value === "true" || value === 1 || value === "1";
 }
 
+function parseEvals(raw: string | undefined): AgentRecord["evals"] {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as { tasks?: number; pass?: number; note?: string };
+    if (!v || typeof v.tasks !== "number") return null;
+    return { tasks: v.tasks, pass: Number(v.pass ?? 0), note: String(v.note ?? "") };
+  } catch {
+    return null;
+  }
+}
+
 function mapAgent(row: AgentRow): AgentRecord {
+  const sampleUser = row.sample_user?.trim() ?? "";
+  const sampleReply = row.sample_reply?.trim() ?? "";
   return {
     id: row.id,
     slug: row.slug,
@@ -72,6 +97,14 @@ function mapAgent(row: AgentRow): AgentRecord {
     reviewCount: Number(row.review_count),
     salesCount: Number(row.sales_count),
     createdAt: asIso(row.created_at),
+    weightsId: row.weights_id ?? "",
+    runtimeModel: row.runtime_model ?? "grok-4.6",
+    temperature: Number(row.temperature ?? 0.7),
+    maxTokens: Number(row.max_tokens ?? 480),
+    weightCard: row.weight_card ?? "",
+    evals: parseEvals(row.evals),
+    sample: sampleUser && sampleReply ? { user: sampleUser, reply: sampleReply } : null,
+    sellerBtc: row.seller_btc ?? "",
   };
 }
 
@@ -97,6 +130,12 @@ function toSummary(agent: AgentRecord): AgentSummary {
     reviewCount: agent.reviewCount,
     salesCount: agent.salesCount,
     createdAt: agent.createdAt,
+    weightsId: agent.weightsId,
+    runtimeModel: agent.runtimeModel,
+    temperature: agent.temperature,
+    maxTokens: agent.maxTokens,
+    evals: agent.evals,
+    sellerBtc: agent.sellerBtc,
   };
 }
 
@@ -104,6 +143,7 @@ async function readySql(): Promise<Sql> {
   const sql = await getSql();
   await ensureCatalog(sql);
   await ensureHouse(sql);
+  await maybeRunScout(sql);
   return sql;
 }
 
@@ -111,20 +151,31 @@ async function ensureHouse(sql: Sql): Promise<void> {
   await sql.query(`
     create table if not exists house (
       id text primary key,
-      fee_bps integer not null default 800,
+      fee_bps integer not null default 1000,
       treasury_cents integer not null default 0
     )
   `);
+  await sql.query(`alter table purchases add column if not exists fee_cents integer not null default 0`);
+  await sql.query(`alter table purchases add column if not exists seller_net_cents integer not null default 0`);
+  await sql.query(`alter table purchases add column if not exists stripe_session_id text`);
+  await sql.query(`alter table purchases add column if not exists payment_source text not null default 'ledger'`);
+  await sql.query(`alter table profiles add column if not exists btc_address text not null default ''`);
+  await sql.query(`alter table agents add column if not exists seller_btc text not null default ''`);
   await sql.query(`
-    alter table purchases add column if not exists fee_cents integer not null default 0
-  `);
-  await sql.query(`
-    alter table purchases add column if not exists seller_net_cents integer not null default 0
+    create table if not exists studio_payouts (
+      id text primary key,
+      seller_id text not null,
+      purchase_id text,
+      amount_cents integer not null,
+      btc_address text not null default '',
+      status text not null default 'owed',
+      created_at timestamptz not null default now()
+    )
   `);
   await sql`
     insert into house (id, fee_bps, treasury_cents)
     values (${HOUSE_ID}, ${FEE_BPS}, ${0})
-    on conflict (id) do nothing
+    on conflict (id) do update set fee_bps = ${FEE_BPS}
   `;
 }
 
@@ -157,6 +208,37 @@ function slugify(name: string): string {
     .slice(0, 36);
   const suffix = Math.random().toString(36).slice(2, 6);
   return `${base || "agent"}-${suffix}`;
+}
+
+async function settleSeller(
+  sql: Sql,
+  input: {
+    sellerId: string;
+    sellerBtc: string;
+    purchaseId: string;
+    price: number;
+    fee: number;
+    net: number;
+    paymentSource: string;
+  },
+): Promise<void> {
+  const seller = await sql<{ user_id: string; btc_address: string }>`
+    select user_id, btc_address from profiles where user_id = ${input.sellerId} limit 1
+  `;
+  if (!seller[0] || input.sellerId === "studio-axon") {
+    await sql`update house set treasury_cents = treasury_cents + ${input.price} where id = ${HOUSE_ID}`;
+    return;
+  }
+  await sql`update house set treasury_cents = treasury_cents + ${input.fee} where id = ${HOUSE_ID}`;
+  if (input.paymentSource === "btc" || input.paymentSource === "crypto") {
+    const address = (input.sellerBtc || seller[0].btc_address || "").trim();
+    await sql`
+      insert into studio_payouts (id, seller_id, purchase_id, amount_cents, btc_address, status)
+      values (${crypto.randomUUID()}, ${input.sellerId}, ${input.purchaseId}, ${input.net}, ${address}, ${"owed"})
+    `;
+    return;
+  }
+  await sql`update profiles set credits = credits + ${input.net} where user_id = ${input.sellerId}`;
 }
 
 export const listAgents = createServerFn({ method: "GET" })
@@ -276,8 +358,9 @@ export const getMyProfile = createServerFn({ method: "GET" })
       studio_name: string;
       bio: string;
       credits: number;
+      btc_address: string;
     }>`
-      select user_id, display_name, studio_name, bio, credits
+      select user_id, display_name, studio_name, bio, credits, btc_address
       from profiles where user_id = ${context.userId} limit 1
     `;
     const row = rows[0];
@@ -287,8 +370,113 @@ export const getMyProfile = createServerFn({ method: "GET" })
       studioName: row?.studio_name ?? "Member",
       bio: row?.bio ?? "",
       credits: Number(row?.credits ?? 0),
+      btcAddress: row?.btc_address ?? "",
     };
   });
+
+export async function acquireListedAgent(
+  sql: Sql,
+  userId: string,
+  agent: AgentRecord,
+): Promise<{
+  ok: true;
+  credits: number;
+  already: boolean;
+  feeCents?: number;
+  sellerNetCents?: number;
+}> {
+  const already = await sql<{ id: string }>`
+    select id from purchases where buyer_id = ${userId} and agent_id = ${agent.id} limit 1
+  `;
+  if (already.length > 0) {
+    const profile = await sql<{ credits: number }>`
+      select credits from profiles where user_id = ${userId} limit 1
+    `;
+    return { ok: true as const, credits: Number(profile[0]?.credits ?? 0), already: true };
+  }
+
+  const price = agent.priceCents;
+  const fee = houseFeeCents(price);
+  const net = sellerNetCents(price);
+  const deducted = await sql<{ credits: number }>`
+    update profiles
+    set credits = credits - ${price}
+    where user_id = ${userId} and credits >= ${price}
+    returning credits
+  `;
+  if (!deducted[0]) throw new Error("Not enough credit in the ledger.");
+
+  const purchaseId = crypto.randomUUID();
+  await sql`
+    insert into purchases (id, buyer_id, agent_id, price_cents, fee_cents, seller_net_cents, payment_source)
+    values (${purchaseId}, ${userId}, ${agent.id}, ${price}, ${fee}, ${net}, ${"ledger"})
+  `;
+  await sql`update agents set sales_count = sales_count + 1 where id = ${agent.id}`;
+  await settleSeller(sql, {
+    sellerId: agent.sellerId,
+    sellerBtc: agent.sellerBtc,
+    purchaseId,
+    price,
+    fee,
+    net,
+    paymentSource: "ledger",
+  });
+  return {
+    ok: true as const,
+    credits: Number(deducted[0].credits),
+    already: false,
+    feeCents: fee,
+    sellerNetCents: net,
+  };
+}
+
+export async function grantCredits(sql: Sql, userId: string, cents: number): Promise<number> {
+  await ensureProfile(sql, userId);
+  const rows = await sql<{ credits: number }>`
+    update profiles set credits = credits + ${cents}
+    where user_id = ${userId}
+    returning credits
+  `;
+  return Number(rows[0]?.credits ?? 0);
+}
+
+export async function grantPurchaseFromStripe(
+  sql: Sql,
+  input: { buyerId: string; agentId: string; sessionId: string; paymentSource: string },
+): Promise<{ credits: number; already: boolean; name: string }> {
+  await ensureProfile(sql, input.buyerId);
+  const rows = await sql<AgentRow>`select * from agents where id = ${input.agentId} limit 1`;
+  const agent = rows[0] ? mapAgent(rows[0]) : null;
+  if (!agent || !agent.listed) throw new Error("That listing is gone.");
+
+  const already = await sql<{ id: string }>`
+    select id from purchases where buyer_id = ${input.buyerId} and agent_id = ${agent.id} limit 1
+  `;
+  const wallet = await sql<{ credits: number }>`
+    select credits from profiles where user_id = ${input.buyerId} limit 1
+  `;
+  const credits = Number(wallet[0]?.credits ?? 0);
+  if (already.length > 0) return { credits, already: true, name: agent.name };
+
+  const fee = houseFeeCents(agent.priceCents);
+  const net = sellerNetCents(agent.priceCents);
+  const purchaseId = crypto.randomUUID();
+  await sql`
+    insert into purchases (id, buyer_id, agent_id, price_cents, fee_cents, seller_net_cents, stripe_session_id, payment_source)
+    values (${purchaseId}, ${input.buyerId}, ${agent.id}, ${agent.priceCents}, ${fee}, ${net}, ${input.sessionId}, ${input.paymentSource})
+  `;
+  await sql`update agents set sales_count = sales_count + 1 where id = ${agent.id}`;
+  await settleSeller(sql, {
+    sellerId: agent.sellerId,
+    sellerBtc: agent.sellerBtc,
+    purchaseId,
+    price: agent.priceCents,
+    fee,
+    net,
+    paymentSource: input.paymentSource,
+  });
+  return { credits, already: false, name: agent.name };
+}
 
 export const buyAgent = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
@@ -300,60 +488,7 @@ export const buyAgent = createServerFn({ method: "POST" })
     const agent = rows[0] ? mapAgent(rows[0]) : null;
     if (!agent || !agent.listed) throw new Error("That listing is gone.");
     if (agent.sellerId === context.userId) throw new Error("You already train this one.");
-
-    const already = await sql<{ id: string }>`
-      select id from purchases where buyer_id = ${context.userId} and agent_id = ${agentId} limit 1
-    `;
-    if (already.length > 0) {
-      const profile = await sql<{ credits: number }>`
-        select credits from profiles where user_id = ${context.userId} limit 1
-      `;
-      return { ok: true as const, credits: Number(profile[0]?.credits ?? 0), already: true };
-    }
-
-    const price = agent.priceCents;
-    const fee = houseFeeCents(price);
-    const net = sellerNetCents(price);
-    const deducted = await sql<{ credits: number }>`
-      update profiles
-      set credits = credits - ${price}
-      where user_id = ${context.userId} and credits >= ${price}
-      returning credits
-    `;
-    if (!deducted[0]) throw new Error("Not enough credit in the ledger.");
-
-    const purchaseId = crypto.randomUUID();
-    await sql`
-      insert into purchases (id, buyer_id, agent_id, price_cents, fee_cents, seller_net_cents)
-      values (${purchaseId}, ${context.userId}, ${agentId}, ${price}, ${fee}, ${net})
-    `;
-    await sql`
-      update agents set sales_count = sales_count + 1 where id = ${agentId}
-    `;
-
-    const seller = await sql<{ user_id: string }>`
-      select user_id from profiles where user_id = ${agent.sellerId} limit 1
-    `;
-    if (seller[0]) {
-      await sql`
-        update profiles set credits = credits + ${net} where user_id = ${agent.sellerId}
-      `;
-      await sql`
-        update house set treasury_cents = treasury_cents + ${fee} where id = ${HOUSE_ID}
-      `;
-    } else {
-      await sql`
-        update house set treasury_cents = treasury_cents + ${price} where id = ${HOUSE_ID}
-      `;
-    }
-
-    return {
-      ok: true as const,
-      credits: Number(deducted[0].credits),
-      already: false,
-      feeCents: fee,
-      sellerNetCents: net,
-    };
+    return acquireListedAgent(sql, context.userId, agent);
   });
 
 export const listLibrary = createServerFn({ method: "GET" })
@@ -396,11 +531,22 @@ export const listMyListings = createServerFn({ method: "GET" })
     const recordedTake = Number(earnings[0]?.take ?? 0);
     const net = recordedNet > 0 || recordedTake > 0 ? recordedNet : sellerNetCents(gross);
     const take = recordedTake > 0 || recordedNet > 0 ? recordedTake : houseFeeCents(gross);
+    const payouts = await sql<{ amount: number; n: number }>`
+      select coalesce(sum(amount_cents), 0)::int as amount, count(*)::int as n
+      from studio_payouts
+      where seller_id = ${context.userId} and status = ${"owed"}
+    `;
+    const profile = await sql<{ btc_address: string }>`
+      select btc_address from profiles where user_id = ${context.userId} limit 1
+    `;
     return {
       agents: rows.map((row) => mapAgent(row)),
       grossCents: gross,
       netCents: net,
       takeCents: take,
+      owedCents: Number(payouts[0]?.amount ?? 0),
+      owedCount: Number(payouts[0]?.n ?? 0),
+      btcAddress: profile[0]?.btc_address ?? "",
     };
   });
 
@@ -415,6 +561,7 @@ type ListingInput = {
   modelLabel: string;
   capabilities: string;
   trainingNotes: string;
+  btcAddress: string;
 };
 
 function cleanListing(input: ListingInput) {
@@ -428,6 +575,7 @@ function cleanListing(input: ListingInput) {
   const caps = parseCapabilities(input.capabilities);
   const priceDollars = Number(input.priceDollars);
   const hoursTrained = Math.round(Number(input.hoursTrained));
+  const btcAddress = (input.btcAddress ?? "").trim();
 
   if (name.length < 2 || name.length > 60) throw new Error("Give the agent a name (2–60 characters).");
   if (tagline.length < 8 || tagline.length > 160) throw new Error("Tagline should be a short sentence.");
@@ -436,14 +584,15 @@ function cleanListing(input: ListingInput) {
   if (!CATEGORY_IDS.includes(category as (typeof CATEGORY_IDS)[number])) {
     throw new Error("Pick a discipline.");
   }
-  if (!Number.isFinite(priceDollars) || priceDollars < 5 || priceDollars > 200) {
-    throw new Error("Price sits between $5 and $200.");
+  if (!Number.isFinite(priceDollars) || priceDollars < MIN_LISTING_CENTS / 100 || priceDollars > 200) {
+    throw new Error("Price sits between $19 and $200.");
   }
   if (!Number.isFinite(hoursTrained) || hoursTrained < 1 || hoursTrained > 100000) {
     throw new Error("Hours trained looks off.");
   }
   if (caps.length < 1 || caps.length > 8) throw new Error("List one to eight capabilities.");
   if (modelLabel.length > 40) throw new Error("Model label is too long.");
+  if (!isBtcAddress(btcAddress)) throw new Error("Studios need a Bitcoin address. The 90% split lands there.");
 
   return {
     name,
@@ -456,6 +605,7 @@ function cleanListing(input: ListingInput) {
     modelLabel,
     capabilities: caps,
     trainingNotes,
+    btcAddress,
   };
 }
 
@@ -470,6 +620,19 @@ export const createListing = createServerFn({ method: "POST" })
     `;
     const sellerName =
       profile[0]?.studio_name?.trim() || profile[0]?.display_name?.trim() || "Independent";
+    const wallet = await sql<{ credits: number }>`
+      select credits from profiles where user_id = ${context.userId} limit 1
+    `;
+    if (Number(wallet[0]?.credits ?? 0) < LISTING_FEE_CENTS) {
+      throw new Error("Listing fee is $1. Top up with Bitcoin first.");
+    }
+    await sql`
+      update profiles set credits = credits - ${LISTING_FEE_CENTS}, btc_address = ${data.btcAddress}
+      where user_id = ${context.userId} and credits >= ${LISTING_FEE_CENTS}
+    `;
+    await sql`
+      update house set treasury_cents = treasury_cents + ${LISTING_FEE_CENTS} where id = ${HOUSE_ID}
+    `;
     const id = crypto.randomUUID();
     let slug = slugify(data.name);
     for (let i = 0; i < 5; i += 1) {
@@ -478,20 +641,24 @@ export const createListing = createServerFn({ method: "POST" })
       slug = slugify(data.name);
     }
     const sigil = data.name.replace(/[^a-zA-Z]/g, "").slice(0, 1).toUpperCase() || "A";
+    const w = weightFor(slug, data.category);
     await sql`
       insert into agents (
         id, slug, seller_id, seller_name, name, tagline, description, body,
         category, price_cents, version, hours_trained, model_label, capabilities,
-        training_notes, sigil, featured, listed
+        training_notes, sigil, featured, listed,
+        weights_id, runtime_model, temperature, evals, sample_user, sample_reply, seller_btc
       ) values (
         ${id}, ${slug}, ${context.userId}, ${sellerName},
         ${data.name}, ${data.tagline}, ${data.description}, ${data.body},
         ${data.category}, ${data.priceCents}, ${"1.0"}, ${data.hoursTrained},
-        ${data.modelLabel}, ${JSON.stringify(data.capabilities)}, ${data.trainingNotes},
-        ${sigil}, ${false}, ${true}
+        ${w.label}, ${JSON.stringify(data.capabilities)}, ${data.trainingNotes},
+        ${sigil}, ${false}, ${true},
+        ${w.id}, ${w.runtimeModel}, ${w.temperature}, ${JSON.stringify(w.eval)},
+        ${w.sample.user}, ${w.sample.reply}, ${data.btcAddress}
       )
     `;
-    return { id, slug };
+    return { id, slug, credits: Number(wallet[0]?.credits ?? 0) - LISTING_FEE_CENTS };
   });
 
 export const setListingLive = createServerFn({ method: "POST" })
@@ -499,14 +666,33 @@ export const setListingLive = createServerFn({ method: "POST" })
   .validator((input: { agentId: string; listed: boolean }) => input)
   .handler(async ({ context, data }) => {
     const sql = await readySql();
-    const rows = await sql<{ id: string }>`
+    const rows = await sql<{ id: string; price_cents: number }>`
       update agents
       set listed = ${data.listed}
       where id = ${data.agentId} and seller_id = ${context.userId}
-      returning id
+      returning id, price_cents
     `;
     if (!rows[0]) throw new Error("Listing not found.");
+    if (data.listed && Number(rows[0].price_cents) < MIN_LISTING_CENTS) {
+      await sql`update agents set listed = false where id = ${data.agentId}`;
+      throw new Error("Nothing under $19 lists live.");
+    }
     return { ok: true as const };
+  });
+
+export const setStudioBtc = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((address: string) => {
+    const value = address.trim();
+    if (!isBtcAddress(value)) throw new Error("That is not a Bitcoin address.");
+    return value;
+  })
+  .handler(async ({ context, data }) => {
+    const sql = await readySql();
+    await ensureProfile(sql, context.userId);
+    await sql`update profiles set btc_address = ${data} where user_id = ${context.userId}`;
+    await sql`update agents set seller_btc = ${data} where seller_id = ${context.userId}`;
+    return { ok: true as const, address: data };
   });
 
 export const addReview = createServerFn({ method: "POST" })

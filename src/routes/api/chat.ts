@@ -4,6 +4,7 @@ import { gateIdentityEnabled } from "@/lib/auth/gate-identity.server";
 import { CrossSiteRequestError, assertSameSiteRequest } from "@/lib/auth/isolation.server";
 import { DEV_USER_ID, UnauthorizedError } from "@/lib/auth/verify.server";
 import { prepareAgentRun, validateChatInput } from "@/lib/server/chat.server";
+import { GuardError, guardRequest } from "@/lib/server/guard.server";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -39,7 +40,16 @@ async function requireChatUser(request: Request): Promise<string> {
 async function handleChat(request: Request): Promise<Response> {
   try {
     const userId = await requireChatUser(request);
-    const input = validateChatInput(await request.json());
+    const raw = await request.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch {
+      return Response.json({ error: "Invalid payload." }, { status: 400 });
+    }
+    const lane = raw.includes("agt_keep") ? "support" : "chat";
+    await guardRequest(request, lane, userId, raw);
+    const input = validateChatInput(parsed);
     if (!input.agentId) {
       return Response.json({ error: "Missing agent." }, { status: 400 });
     }
@@ -133,6 +143,9 @@ async function handleChat(request: Request): Promise<Response> {
       },
     });
   } catch (err) {
+    if (err instanceof GuardError) {
+      return Response.json({ error: err.message }, { status: err.status });
+    }
     if (err instanceof UnauthorizedError) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }

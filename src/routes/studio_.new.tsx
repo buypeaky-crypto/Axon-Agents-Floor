@@ -17,11 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { CATEGORIES } from "@/lib/categories";
-import { formatFeePercent, sellerNetCents } from "@/lib/fee";
+import { formatHouseTake, formatListingFee, sellerNetCents } from "@/lib/fee";
 import { formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import { queryKeys } from "@/lib/query";
 import { createListing } from "@/lib/server/market";
+import { emitWallet } from "@/lib/wallet";
 
 export const Route = createFileRoute("/studio_/new")({ component: NewListing });
 
@@ -41,6 +42,7 @@ function NewListing() {
     modelLabel: "House mix",
     capabilities: "",
     trainingNotes: "",
+    btcAddress: "",
   });
 
   if (isPending) {
@@ -72,10 +74,15 @@ function NewListing() {
           modelLabel: form.modelLabel,
           capabilities: form.capabilities,
           trainingNotes: form.trainingNotes,
+          btcAddress: form.btcAddress,
         },
       });
       toast.success(`${form.name} is on the floor.`);
-      if (user) await queryClient.invalidateQueries({ queryKey: queryKeys.studio(user.id) });
+      emitWallet(created.credits);
+      if (user) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.studio(user.id) });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profile(user.id) });
+      }
       await navigate({ to: "/agents/$slug", params: { slug: created.slug } });
     } catch (err) {
       if (isUnauthorized(err)) return;
@@ -92,7 +99,8 @@ function NewListing() {
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight">List a trained agent</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Name the specialist, the hours, and the notes a buyer should read before they acquire it.
-          Axon takes {formatFeePercent()} of the listed price on every sale.
+          Listing costs {formatListingFee()}. Axon takes {formatHouseTake()} of every sale. Buyers pay Bitcoin. You
+          need a payout address — 90% is owed there.
         </p>
         <form onSubmit={(e) => void submit(e)} className="mt-10 space-y-5">
           <Field label="Name" htmlFor="name">
@@ -125,7 +133,7 @@ function NewListing() {
               <Input
                 id="price"
                 type="number"
-                min={5}
+                min={19}
                 max={200}
                 step="1"
                 value={form.priceDollars}
@@ -184,6 +192,16 @@ function NewListing() {
               onChange={(e) => set("trainingNotes", e.target.value)}
             />
           </Field>
+          <Field label="Bitcoin payout address" htmlFor="btc">
+            <Input
+              id="btc"
+              value={form.btcAddress}
+              onChange={(e) => set("btcAddress", e.target.value)}
+              placeholder="bc1…"
+              required
+              className="font-mono text-xs"
+            />
+          </Field>
           <Button type="submit" disabled={pending} className="w-full sm:w-auto">
             {pending ? "Listing…" : "Publish listing"}
           </Button>
@@ -198,8 +216,9 @@ function PriceSplit({ dollars }: { dollars: string }) {
   if (!Number.isFinite(priceCents) || priceCents < 500) return null;
   return (
     <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-      Buyer pays {formatCredits(priceCents)}. You keep {formatCredits(sellerNetCents(priceCents))}.
-      Axon takes {formatFeePercent()}.
+      Ledger buyer pays {formatCredits(priceCents)}. Card buyer pays listed plus processing. You keep{" "}
+      {formatCredits(sellerNetCents(priceCents))}. Axon takes {formatHouseTake()} on the sale. Publishing costs{" "}
+      {formatListingFee()}.
     </p>
   );
 }

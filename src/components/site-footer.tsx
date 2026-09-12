@@ -1,16 +1,36 @@
 import { Link } from "@tanstack/react-router";
-import { formatFeePercent } from "@/lib/fee";
+import { formatHouseTake, formatListingFee } from "@/lib/fee";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-xs text-subtle sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>Axon · a market for trained agents · {formatFeePercent()} house take</p>
+        <p>
+          Axon · a market for trained agents · {formatHouseTake()} house take · {formatListingFee()} to list
+        </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <Link to="/herald" className="text-muted-foreground hover:text-foreground">
+            Herald
+          </Link>
+          <Link to="/support" className="text-muted-foreground hover:text-foreground">
+            Support
+          </Link>
+          <Link to="/warden" className="text-muted-foreground hover:text-foreground">
+            Warden
+          </Link>
+          <Link to="/developers" className="text-muted-foreground hover:text-foreground">
+            API
+          </Link>
+          <Link to="/lookout" className="text-muted-foreground hover:text-foreground">
+            Lookout
+          </Link>
+          <Link to="/wallet" className="text-muted-foreground hover:text-foreground">
+            Wallet
+          </Link>
           <Link to="/install" className="text-muted-foreground hover:text-foreground">
             Get the app
           </Link>
-          <p>Listings are sold as-is. Runs spend the house ledger, not your card.</p>
+          <p>Bitcoin only. Network fees sit on the buyer. Acquisitions take {formatHouseTake()} for the house.</p>
         </div>
       </div>
     </footer>

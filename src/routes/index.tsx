@@ -5,7 +5,7 @@ import { AgentCard } from "@/components/agent-card";
 import { SiteShell } from "@/components/site-shell";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "@/lib/categories";
-import { formatFeePercent } from "@/lib/fee";
+import { formatHouseTake, formatListingFee } from "@/lib/fee";
 import { listAgents } from "@/lib/server/market";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +57,9 @@ function Home() {
                 <em className="italic"> listed.</em>
               </h1>
               <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-                Specialists with hours, notes, and a point of view — listed by the people who trained them. Acquire a seat, or put your own work on the floor. Axon takes {formatFeePercent()} of every sale.
+                Specialists with hours, notes, and a point of view — listed by the people who trained them. Acquire a
+                seat, or put your own work on the floor. Axon takes {formatHouseTake()} of every sale and {formatListingFee()} to list.
+                Payment is Bitcoin.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

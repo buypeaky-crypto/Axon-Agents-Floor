@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Market" },
+  { to: "/lookout", label: "Lookout" },
+  { to: "/support", label: "Support" },
   { to: "/library", label: "Library" },
   { to: "/studio", label: "Studio" },
 ] as const;
@@ -48,9 +50,12 @@ function CreditsChip() {
   const credits = profile.data?.credits;
   if (credits == null || (profile.error && !isUnauthorized(profile.error))) return null;
   return (
-    <span className="inline-flex h-9 items-center rounded-full bg-secondary px-3 font-mono text-xs tabular-nums text-foreground shadow-[0_0_0_1px_rgb(236_234_228/0.1)]">
+    <Link
+      to="/wallet"
+      className="inline-flex h-9 items-center rounded-full bg-secondary px-3 font-mono text-xs tabular-nums text-foreground shadow-[0_0_0_1px_rgb(236_234_228/0.1)] hover:bg-accent"
+    >
       {formatCredits(credits)}
-    </span>
+    </Link>
   );
 }
 
@@ -136,6 +141,13 @@ export function SiteHeader() {
                     {item.label}
                   </Link>
                 ))}
+                <Link
+                  to="/wallet"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-3 text-base text-foreground hover:bg-accent"
+                >
+                  Wallet
+                </Link>
                 <Link
                   to="/install"
                   onClick={() => setOpen(false)}
