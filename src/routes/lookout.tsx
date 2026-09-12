@@ -51,7 +51,11 @@ function LookoutPage() {
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight sm:text-5xl">Lookout</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
           A 24/7 scout. It reads the public floor and proposes seats. You publish. Nothing under $19, no $5 clones.
-          Sweeps every {status.intervalHours} hours.
+          Sweeps every {status.intervalHours} hours. The GitHub net is{" "}
+          <Link to="/trawl" className="underline-offset-4 hover:underline">
+            Trawl
+          </Link>
+          .
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-3">

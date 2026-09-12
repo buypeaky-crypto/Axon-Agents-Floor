@@ -18,11 +18,17 @@ export function SiteFooter() {
           <Link to="/warden" className="text-muted-foreground hover:text-foreground">
             Warden
           </Link>
+          <Link to="/assay" className="text-muted-foreground hover:text-foreground">
+            Assay
+          </Link>
           <Link to="/developers" className="text-muted-foreground hover:text-foreground">
             API
           </Link>
           <Link to="/lookout" className="text-muted-foreground hover:text-foreground">
             Lookout
+          </Link>
+          <Link to="/trawl" className="text-muted-foreground hover:text-foreground">
+            Trawl
           </Link>
           <Link to="/wallet" className="text-muted-foreground hover:text-foreground">
             Wallet

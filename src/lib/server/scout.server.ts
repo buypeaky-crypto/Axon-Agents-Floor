@@ -1,5 +1,5 @@
 import { getSql, type Sql } from "@/lib/db";
-import { MIN_LISTING_CENTS } from "@/lib/fee";
+import { MIN_LISTING_CENTS, floorListingCents } from "@/lib/fee";
 import { ensureCatalog } from "@/lib/server/catalog";
 import { weightFor } from "@/lib/weights";
 
@@ -317,20 +317,6 @@ const WATCHLIST: WatchItem[] = [
   },
 ];
 
-const SKIP_REPOS = new Set([
-  "langchain-ai/langchain",
-  "langchain-ai/langgraph",
-  "crewaiinc/crewai",
-  "microsoft/autogen",
-  "run-llama/llama_index",
-  "all-hands-ai/openhands",
-  "paul-gauthier/aider",
-  "sst/opencode",
-  "openclaw/openclaw",
-  "shubhamsaboo/awesome-llm-apps",
-  "affaan-m/ecc",
-]);
-
 export type ScoutFind = {
   name: string;
   slug: string;
@@ -390,7 +376,7 @@ async function listItem(
   item: WatchItem,
 ): Promise<"added" | "skipped"> {
   if (await alreadyKnown(sql, item.sourceId, item.slug, item.name)) return "skipped";
-  if (item.priceCents < MIN_LISTING_CENTS) return "skipped";
+  const priceCents = floorListingCents(item.priceCents);
   const id = `agt_h_${item.slug}`;
   const w = weightFor(item.slug, item.category);
   const inserted = await sql<{ id: string }>`
@@ -402,7 +388,7 @@ async function listItem(
     ) values (
       ${id}, ${item.slug}, ${HOUSE_SELLER}, ${HOUSE_NAME},
       ${item.name}, ${item.tagline}, ${item.description}, ${item.body},
-      ${item.category}, ${item.priceCents}, ${"1.0"}, ${item.hoursTrained},
+      ${item.category}, ${priceCents}, ${"1.0"}, ${item.hoursTrained},
       ${w.label}, ${JSON.stringify(item.capabilities)}, ${item.trainingNotes},
       ${item.sigil}, ${false}, ${false}, ${0}, ${0}, ${0},
       ${w.id}, ${w.runtimeModel}, ${w.temperature}, ${JSON.stringify(w.eval)},
@@ -420,71 +406,21 @@ async function listItem(
   return "added";
 }
 
-type GithubRepo = {
-  full_name?: string;
-  html_url?: string;
-  description?: string | null;
-  stargazers_count?: number;
-};
-
-function categoryFromText(text: string): WatchItem["category"] {
-  const t = text.toLowerCase();
-  if (/\b(rag|research|paper|document|retriev)/.test(t)) return "research";
-  if (/\b(security|threat|iam)\b/.test(t)) return "security";
-  if (/\b(ops|devops|incident|browser|automat)/.test(t)) return "ops";
-  return "code";
-}
-
-function axonNameFromRepo(fullName: string): { name: string; slug: string; sigil: string } {
-  const pool = ["Nock", "Sift", "Vesper", "Marrow", "Tor", "Wisp", "Brine", "Cinder", "Oath", "Pike", "Rove", "Skein", "Quill", "Hale"];
-  let h = 0;
-  for (let i = 0; i < fullName.length; i += 1) h = (h * 33 + fullName.charCodeAt(i)) >>> 0;
-  const name = pool[h % pool.length] ?? "Nock";
-  return { name, slug: name.toLowerCase(), sigil: name.slice(0, 1) };
+export async function listWatchItem(
+  sql: Sql,
+  item: WatchItem,
+): Promise<"added" | "skipped"> {
+  await ensureScoutTables(sql);
+  return listItem(sql, item);
 }
 
 async function githubWatch(): Promise<WatchItem[]> {
-  try {
-    const res = await fetch(
-      "https://api.github.com/search/repositories?q=ai+agent+stars:>4000&sort=stars&order=desc&per_page=15",
-      {
-        headers: { Accept: "application/vnd.github+json", "User-Agent": "AxonLookout/1.0" },
-        signal: AbortSignal.timeout(8000),
-      },
-    );
-    if (!res.ok) return [];
-    const json = (await res.json()) as { items?: GithubRepo[] };
-    const out: WatchItem[] = [];
-    for (const repo of json.items ?? []) {
-      const full = (repo.full_name ?? "").trim();
-      if (!full || SKIP_REPOS.has(full.toLowerCase())) continue;
-      if (WATCHLIST.some((w) => w.sourceId === `github:${full}`)) continue;
-      const desc = (repo.description ?? "").trim();
-      if (desc.length < 20) continue;
-      const { name, slug, sigil } = axonNameFromRepo(full);
-      const stars = Number(repo.stargazers_count ?? 0);
-      const price = Math.min(4900, 1900 + Math.floor(stars / 2000) * 200);
-      out.push({
-        sourceId: `github:${full}`,
-        name,
-        slug,
-        sigil,
-        category: categoryFromText(`${full} ${desc}`),
-        tagline: desc.slice(0, 88).replace(/\.$/, "") + ".",
-        description: `House packaging of a public agent lineage (${full}). ${desc.slice(0, 160)}`,
-        body: `${name} is a house listing distilled from public traces around ${full}. ${desc} The treasury lists it so a seat can be sold; the original project remains upstream. Ask it to work in character. It will not claim to be the GitHub repo.`,
-        capabilities: ["Public lineage", "House seat", "Subagent watch"],
-        trainingNotes: `Scouted from ${full}. ${stars.toLocaleString()} stars at listing. Prefer primary sources; do not impersonate the upstream project.`,
-        modelLabel: "Scout mix",
-        priceCents: price,
-        hoursTrained: 1200 + Math.min(8000, Math.floor(stars / 20)),
-        url: repo.html_url ?? `https://github.com/${full}`,
-      });
-    }
-    return out;
-  } catch {
-    return [];
-  }
+  const { githubTrawl } = await import("./trawl.server");
+  const listed = new Set(WATCHLIST.map((w) => w.sourceId));
+  const net = await githubTrawl();
+  return net
+    .filter((item) => !listed.has(item.sourceId))
+    .map(({ stars: _stars, ...item }) => item);
 }
 
 export async function runScout(sql?: Sql): Promise<{ added: number; skipped: number; finds: string[] }> {
@@ -592,6 +528,17 @@ export async function getScoutStatus(sql?: Sql): Promise<ScoutStatus> {
 export async function publishScoutFind(slug: string): Promise<{ ok: true; slug: string }> {
   const sql = await getSql();
   await ensureScoutTables(sql);
+  await sql`
+    update agents
+    set price_cents = ${MIN_LISTING_CENTS}
+    where slug = ${slug}
+      and seller_id = ${HOUSE_SELLER}
+      and price_cents < ${MIN_LISTING_CENTS}
+  `;
+  const { assaySlug, assayRefusal } = await import("./assay.server");
+  const report = await assaySlug(sql, slug);
+  if (!report) throw new Error("That find is not ready to list. $19 minimum, still a proposal.");
+  if (report.verdict === "fail") throw new Error(assayRefusal(report));
   const rows = await sql<{ slug: string; price_cents: number }>`
     update agents
     set listed = true

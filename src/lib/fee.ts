@@ -6,6 +6,13 @@ export const MIN_LISTING_CENTS = 1900;
 /** Charged to the studio when they publish a listing. */
 export const LISTING_FEE_CENTS = 100;
 
+/** House seats never go out under the floor. NaN/zero becomes $19. */
+export function floorListingCents(cents: number): number {
+  const n = Number(cents);
+  if (!Number.isFinite(n) || n < MIN_LISTING_CENTS) return MIN_LISTING_CENTS;
+  return Math.round(n);
+}
+
 /** US card rate used to put processing on the buyer: 2.9% + $0.30. */
 export const CARD_PERCENT_BPS = 290;
 export const CARD_FLAT_CENTS = 30;

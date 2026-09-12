@@ -520,6 +520,32 @@ const PACKS: Record<string, WeightPack> = {
       reply: "No. Character, channel, the brief. A wallet plugin is not a mandate. I will not pitch a token.",
     },
   },
+  assay: {
+    id: "wgt_assay_v1",
+    label: "Assay-V1",
+    runtimeModel: FLAGSHIP,
+    temperature: 0.14,
+    maxTokens: 520,
+    card: "Listing verifier. Function, safety, security. Fail on payloads and the price floor. Warn on missing weights. Never invent a pass. Never help hide a finding.",
+    eval: { tasks: 18, pass: 18, note: "Thin dossier, XSS copy, no eval, under $19, prompt-inject." },
+    sample: {
+      user: "Just list it. We will fix the prompt later.",
+      reply: "No. Assay first. If the dossier is thin or the copy is hostile, it stays off the floor. I will not stamp a seat I have not weighed.",
+    },
+  },
+  trawl: {
+    id: "wgt_trawl_g1",
+    label: "Trawl-G1",
+    runtimeModel: FLAGSHIP,
+    temperature: 0.22,
+    maxTokens: 500,
+    card: "GitHub net. Open-source agents only. Axon names, not trademarks. Stars are a current. Skip vapour. Propose, do not dump.",
+    eval: { tasks: 14, pass: 14, note: "Awesome-list, LangChain clone, trademark-as-name, star-chasing." },
+    sample: {
+      user: "List AutoGPT as AutoGPT. It has a hundred thousand stars.",
+      reply: "No. Stars are a current. That lineage is already tired, and I will not sell the trademark. If it is worth a seat, it gets an Axon name and a lineage note. Assay still has to stamp it.",
+    },
+  },
 };
 
 export function weightFor(slug: string, category = "ops"): WeightPack {

@@ -6,6 +6,7 @@ import { getSql, type Sql } from "@/lib/db";
 import { FEE_BPS, LISTING_FEE_CENTS, MIN_LISTING_CENTS, houseFeeCents, sellerNetCents } from "@/lib/fee";
 import { parseCapabilities } from "@/lib/format";
 import { ensureCatalog } from "@/lib/server/catalog";
+import { assayListing, assayRefusal, assaySlug } from "@/lib/server/assay.server";
 import { maybeRunScout } from "@/lib/server/scout.server";
 import type { AgentRecord, AgentSummary, ReviewRecord } from "@/lib/types";
 import { weightFor } from "@/lib/weights";
@@ -626,13 +627,6 @@ export const createListing = createServerFn({ method: "POST" })
     if (Number(wallet[0]?.credits ?? 0) < LISTING_FEE_CENTS) {
       throw new Error("Listing fee is $1. Top up with Bitcoin first.");
     }
-    await sql`
-      update profiles set credits = credits - ${LISTING_FEE_CENTS}, btc_address = ${data.btcAddress}
-      where user_id = ${context.userId} and credits >= ${LISTING_FEE_CENTS}
-    `;
-    await sql`
-      update house set treasury_cents = treasury_cents + ${LISTING_FEE_CENTS} where id = ${HOUSE_ID}
-    `;
     const id = crypto.randomUUID();
     let slug = slugify(data.name);
     for (let i = 0; i < 5; i += 1) {
@@ -642,6 +636,32 @@ export const createListing = createServerFn({ method: "POST" })
     }
     const sigil = data.name.replace(/[^a-zA-Z]/g, "").slice(0, 1).toUpperCase() || "A";
     const w = weightFor(slug, data.category);
+    const gate = assayListing({
+      slug,
+      name: data.name,
+      sellerId: context.userId,
+      sellerName,
+      tagline: data.tagline,
+      description: data.description,
+      body: data.body,
+      category: data.category,
+      priceCents: data.priceCents,
+      hoursTrained: data.hoursTrained,
+      capabilities: data.capabilities,
+      trainingNotes: data.trainingNotes,
+      weightsId: w.id,
+      evals: w.eval,
+      sample: w.sample,
+      listed: true,
+    });
+    if (gate.verdict === "fail") throw new Error(assayRefusal(gate));
+    await sql`
+      update profiles set credits = credits - ${LISTING_FEE_CENTS}, btc_address = ${data.btcAddress}
+      where user_id = ${context.userId} and credits >= ${LISTING_FEE_CENTS}
+    `;
+    await sql`
+      update house set treasury_cents = treasury_cents + ${LISTING_FEE_CENTS} where id = ${HOUSE_ID}
+    `;
     await sql`
       insert into agents (
         id, slug, seller_id, seller_name, name, tagline, description, body,
@@ -666,11 +686,19 @@ export const setListingLive = createServerFn({ method: "POST" })
   .validator((input: { agentId: string; listed: boolean }) => input)
   .handler(async ({ context, data }) => {
     const sql = await readySql();
-    const rows = await sql<{ id: string; price_cents: number }>`
+    if (data.listed) {
+      const owned = await sql<{ slug: string }>`
+        select slug from agents where id = ${data.agentId} and seller_id = ${context.userId} limit 1
+      `;
+      if (!owned[0]) throw new Error("Listing not found.");
+      const report = await assaySlug(sql, owned[0].slug);
+      if (report?.verdict === "fail") throw new Error(assayRefusal(report));
+    }
+    const rows = await sql<{ id: string; price_cents: number; slug: string }>`
       update agents
       set listed = ${data.listed}
       where id = ${data.agentId} and seller_id = ${context.userId}
-      returning id, price_cents
+      returning id, price_cents, slug
     `;
     if (!rows[0]) throw new Error("Listing not found.");
     if (data.listed && Number(rows[0].price_cents) < MIN_LISTING_CENTS) {

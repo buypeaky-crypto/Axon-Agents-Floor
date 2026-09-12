@@ -213,7 +213,7 @@ function NewListing() {
 
 function PriceSplit({ dollars }: { dollars: string }) {
   const priceCents = Math.round(Number(dollars) * 100);
-  if (!Number.isFinite(priceCents) || priceCents < 500) return null;
+  if (!Number.isFinite(priceCents) || priceCents < 1900) return null;
   return (
     <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
       Ledger buyer pays {formatCredits(priceCents)}. Card buyer pays listed plus processing. You keep{" "}

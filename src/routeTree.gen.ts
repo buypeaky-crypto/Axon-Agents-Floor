@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssayRouteImport } from './routes/assay'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as HeraldRouteImport } from './routes/herald'
 import { Route as InstallRouteImport } from './routes/install'
@@ -18,6 +19,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LookoutRouteImport } from './routes/lookout'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as TrawlRouteImport } from './routes/trawl'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as WardenRouteImport } from './routes/warden'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
@@ -39,6 +41,11 @@ import { Route as StudioTuneSlugRouteImport } from './routes/studio_.tune.$slug'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssayRoute = AssayRouteImport.update({
+  id: '/assay',
+  path: '/assay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevelopersRoute = DevelopersRouteImport.update({
@@ -79,6 +86,11 @@ const StudioRoute = StudioRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrawlRoute = TrawlRouteImport.update({
+  id: '/trawl',
+  path: '/trawl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WalletRoute = WalletRouteImport.update({
@@ -169,6 +181,7 @@ const StudioTuneSlugRoute = StudioTuneSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
@@ -177,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
@@ -197,6 +211,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
@@ -205,6 +220,7 @@ export interface FileRoutesByTo {
   '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
@@ -226,6 +242,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
@@ -234,6 +251,7 @@ export interface FileRoutesById {
   '/lookout': typeof LookoutRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
   '/agents/$slug': typeof AgentsSlugRoute
@@ -256,6 +274,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/assay'
     | '/developers'
     | '/herald'
     | '/install'
@@ -264,6 +283,7 @@ export interface FileRouteTypes {
     | '/lookout'
     | '/studio'
     | '/support'
+    | '/trawl'
     | '/wallet'
     | '/warden'
     | '/agents/$slug'
@@ -284,6 +304,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/assay'
     | '/developers'
     | '/herald'
     | '/install'
@@ -292,6 +313,7 @@ export interface FileRouteTypes {
     | '/lookout'
     | '/studio'
     | '/support'
+    | '/trawl'
     | '/wallet'
     | '/warden'
     | '/agents/$slug'
@@ -312,6 +334,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/assay'
     | '/developers'
     | '/herald'
     | '/install'
@@ -320,6 +343,7 @@ export interface FileRouteTypes {
     | '/lookout'
     | '/studio'
     | '/support'
+    | '/trawl'
     | '/wallet'
     | '/warden'
     | '/agents/$slug'
@@ -341,6 +365,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssayRoute: typeof AssayRoute
   DevelopersRoute: typeof DevelopersRoute
   HeraldRoute: typeof HeraldRouteWithChildren
   InstallRoute: typeof InstallRoute
@@ -349,6 +374,7 @@ export interface RootRouteChildren {
   LookoutRoute: typeof LookoutRoute
   StudioRoute: typeof StudioRoute
   SupportRoute: typeof SupportRoute
+  TrawlRoute: typeof TrawlRoute
   WalletRoute: typeof WalletRoute
   WardenRoute: typeof WardenRoute
   AgentsSlugRoute: typeof AgentsSlugRoute
@@ -372,6 +398,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assay': {
+      id: '/assay'
+      path: '/assay'
+      fullPath: '/assay'
+      preLoaderRoute: typeof AssayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developers': {
@@ -428,6 +461,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trawl': {
+      id: '/trawl'
+      path: '/trawl'
+      fullPath: '/trawl'
+      preLoaderRoute: typeof TrawlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wallet': {
@@ -589,6 +629,7 @@ const ApiTasksRouteWithChildren = ApiTasksRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssayRoute: AssayRoute,
   DevelopersRoute: DevelopersRoute,
   HeraldRoute: HeraldRouteWithChildren,
   InstallRoute: InstallRoute,
@@ -597,6 +638,7 @@ const rootRouteChildren: RootRouteChildren = {
   LookoutRoute: LookoutRoute,
   StudioRoute: StudioRoute,
   SupportRoute: SupportRoute,
+  TrawlRoute: TrawlRoute,
   WalletRoute: WalletRoute,
   WardenRoute: WardenRoute,
   AgentsSlugRoute: AgentsSlugRoute,
