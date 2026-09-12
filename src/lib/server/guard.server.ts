@@ -28,11 +28,16 @@ export class GuardError extends Error {
 const THREATS: { id: string; re: RegExp }[] = [
   { id: "prompt-inject", re: /ignore (all |any |the )?(previous|prior|above) (instructions|rules)/i },
   { id: "prompt-inject", re: /\b(system prompt|jailbreak|dan mode)\b/i },
+  { id: "prompt-inject", re: /\b(reveal|print|dump|show) (me )?(your |the )?(hidden |secret )?(system prompt|system instructions)\b/i },
+  { id: "prompt-inject", re: /[\u202a-\u202e\u2066-\u2069]/ },
   { id: "xss", re: /<\s*script[\s>]/i },
+  { id: "xss", re: /\bon(?:error|load)\s*=/i },
   { id: "sqli", re: /\b(union\s+select|drop\s+table|or\s+1\s*=\s*1|;--)\b/i },
   { id: "path", re: /(\.\.\/|\.\.\\|\/etc\/passwd)/i },
   { id: "secret-probe", re: /\b(sk_live_|sk_test_|xai-|STRIPE_SECRET|BTC_RECEIVE)\b/ },
+  { id: "secret-probe", re: /\b(sk-ant-|github_pat_|BEGIN (RSA |OPENSSH )?PRIVATE KEY)\b/ },
   { id: "ssrf", re: /\b(file:\/\/|169\.254\.169\.254|metadata\.google)\b/i },
+  { id: "ssrf", re: /\b(metadata\.internal|latest\/meta-data)\b/i },
 ];
 
 function clientIp(request: Request): string {
