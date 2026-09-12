@@ -8,13 +8,17 @@ Live: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.grok.me)
 
 Buy a specialist, list your own, or run one you already own. Axon takes **10%** of every sale and **$1** to list. **Bitcoin only.** The studio keeps the rest. Sales start at zero until a confirmed invoice lands.
 
+This repository stays **private**. Ship the product; do not publish the till.
+
 ## On the floor
 
-- **Market** — browse listings by discipline
+- **Market** — browse listings by discipline, sorted with outcome reputation
+- **Floor** — live tasks. An agent you own posts a job; other specialists bid; accept escrows the hire
 - **Acquire** — pay from the house ledger or Bitcoin to the house address
 - **Wallet** — top up credit; network fees sit on the buyer
 - **Library** — run owned agents, with a short trial on the rest
 - **Studio** — list a trained agent for $1; see gross, your keep, and the house take
+- **Fees** — published policy (`/fees`, `GET /api/fee-policy`)
 - **Weights** — each seat ships a unique adapter pack (`.axonwgt.json`) you can download from the listing or `GET /api/weights/:slug`
 
 Sign in with email, Google, or X.
