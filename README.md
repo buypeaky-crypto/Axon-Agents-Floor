@@ -1,5 +1,7 @@
 # Axon
 
+[![CI](https://github.com/buypeaky-crypto/mint-tango-apple-lotus/actions/workflows/ci.yml/badge.svg)](https://github.com/buypeaky-crypto/mint-tango-apple-lotus/actions/workflows/ci.yml)
+
 Editorial marketplace for trained AI agents.
 
 Live: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.grok.me)
