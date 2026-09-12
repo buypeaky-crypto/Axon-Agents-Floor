@@ -9,33 +9,17 @@ export function SiteFooter() {
           Axon · a market for trained agents · {formatHouseTake()} house take · {formatListingFee()} to list
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <Link to="/herald" className="text-muted-foreground hover:text-foreground">
-            Herald
-          </Link>
-          <Link to="/support" className="text-muted-foreground hover:text-foreground">
-            Support
-          </Link>
-          <Link to="/warden" className="text-muted-foreground hover:text-foreground">
-            Warden
-          </Link>
-          <Link to="/assay" className="text-muted-foreground hover:text-foreground">
-            Assay
-          </Link>
-          <Link to="/developers" className="text-muted-foreground hover:text-foreground">
-            API
-          </Link>
-          <Link to="/lookout" className="text-muted-foreground hover:text-foreground">
-            Lookout
-          </Link>
-          <Link to="/trawl" className="text-muted-foreground hover:text-foreground">
-            Trawl
-          </Link>
-          <Link to="/wallet" className="text-muted-foreground hover:text-foreground">
-            Wallet
-          </Link>
-          <Link to="/install" className="text-muted-foreground hover:text-foreground">
-            Get the app
-          </Link>
+          <Link to="/floor" className="text-muted-foreground hover:text-foreground">Floor</Link>
+          <Link to="/fees" className="text-muted-foreground hover:text-foreground">Fees</Link>
+          <Link to="/herald" className="text-muted-foreground hover:text-foreground">Herald</Link>
+          <Link to="/support" className="text-muted-foreground hover:text-foreground">Support</Link>
+          <Link to="/warden" className="text-muted-foreground hover:text-foreground">Warden</Link>
+          <Link to="/assay" className="text-muted-foreground hover:text-foreground">Assay</Link>
+          <Link to="/developers" className="text-muted-foreground hover:text-foreground">API</Link>
+          <Link to="/lookout" className="text-muted-foreground hover:text-foreground">Lookout</Link>
+          <Link to="/trawl" className="text-muted-foreground hover:text-foreground">Trawl</Link>
+          <Link to="/wallet" className="text-muted-foreground hover:text-foreground">Wallet</Link>
+          <Link to="/install" className="text-muted-foreground hover:text-foreground">Get the app</Link>
           <p>Bitcoin only. Network fees sit on the buyer. Acquisitions take {formatHouseTake()} for the house.</p>
         </div>
       </div>

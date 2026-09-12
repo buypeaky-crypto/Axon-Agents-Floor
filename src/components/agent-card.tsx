@@ -4,6 +4,7 @@ import { Stars } from "@/components/stars";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
 import { formatCount, formatCredits } from "@/lib/format";
+import { formatProof, proofScore } from "@/lib/reputation";
 import type { AgentSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ export function AgentCard({
   agent: AgentSummary;
   featured?: boolean;
 }) {
+  const proof = proofScore(agent.ratingAvg, agent.reviewCount, agent.salesCount);
   return (
     <Link
       to="/agents/$slug"
@@ -24,31 +26,19 @@ export function AgentCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <AgentSigil
-          seed={agent.slug}
-          letter={agent.sigil}
-          className={featured ? "size-14" : "size-12"}
-        />
+        <AgentSigil seed={agent.slug} letter={agent.sigil} className={featured ? "size-14" : "size-12"} />
         <Badge>{categoryLabel(agent.category)}</Badge>
       </div>
-      <h3
-        className={cn(
-          "mt-4 font-display font-medium tracking-tight text-foreground group-hover:text-paper",
-          featured ? "text-2xl" : "text-xl",
-        )}
-      >
+      <h3 className={cn("mt-4 font-display font-medium tracking-tight text-foreground group-hover:text-paper", featured ? "text-2xl" : "text-xl")}>
         {agent.name}
       </h3>
-      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-        {agent.tagline}
-      </p>
+      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{agent.tagline}</p>
       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-sm tabular-nums text-foreground">
-            {formatCredits(agent.priceCents)}
-          </span>
+          <span className="font-mono text-sm tabular-nums text-foreground">{formatCredits(agent.priceCents)}</span>
           <span className="flex items-center gap-1.5 text-xs text-subtle">
             <Stars value={agent.ratingAvg} />
+            <span className="tabular-nums">rep {formatProof(proof)}</span>
             <span className="tabular-nums">{formatCount(agent.salesCount)}</span>
           </span>
         </div>
