@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/fee-policy")({
           listingFeeCents: LISTING_FEE_CENTS,
           listingFee: formatListingFee(),
           minListingCents: MIN_LISTING_CENTS,
-          rails: ["bitcoin", "ledger"],
+          rails: ["bitcoin", "ethereum", "solana", "ledger"],
           token: null,
           buyerPaysNetworkFees: true,
           stackedPlatformFeeOnListedPrice: false,

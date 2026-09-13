@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AgentSigil } from "@/components/agent-sigil";
+import { ChainPick } from "@/components/chain-pick";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
 import { formatHouseTake } from "@/lib/fee";
 import { formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
@@ -26,16 +29,17 @@ function ClosePage() {
   const { agent, pitch } = offer;
   const { user, isPending } = useCurrentUserState();
   const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
+  const [chain, setChain] = useState<Chain>("btc");
 
   const btc = useMutation({
-    mutationFn: () => createCryptoCharge({ data: { agentId: agent.id, heraldCode: offer.code } }),
+    mutationFn: () => createCryptoCharge({ data: { agentId: agent.id, heraldCode: offer.code, chain } }),
     onSuccess: (result) => {
       sessionStorage.setItem("axon-crypto-charge", result.chargeId);
       window.location.assign(result.url);
     },
     onError: (err) => {
       if (isUnauthorized(err)) return;
-      toast.error(err instanceof Error ? err.message : "Could not start Bitcoin checkout.");
+      toast.error(err instanceof Error ? err.message : "Could not start crypto checkout.");
     },
   });
 
@@ -55,11 +59,12 @@ function ClosePage() {
         <p className="mt-8 text-sm leading-relaxed text-foreground/90">{pitch}</p>
         <p className="mt-4 font-mono text-2xl tabular-nums">{formatCredits(agent.priceCents)}</p>
         <p className="mt-1 text-xs text-subtle">
-          House take {formatHouseTake()}. Bitcoin only — sats land on the house address.
+          House take {formatHouseTake()}. Bitcoin, Ethereum, or Solana — exact amount lands on the house address.
         </p>
-        <div className="mt-8 flex flex-col gap-2">
+        <div className="mt-8 flex flex-col gap-3">
+          <ChainPick value={chain} onChange={setChain} disabled={btc.isPending} />
           <Button onClick={() => btc.mutate()} disabled={btc.isPending || !crypto.data?.configured}>
-            Pay with Bitcoin
+            Pay with {CHAIN_LABEL[chain]}
           </Button>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">

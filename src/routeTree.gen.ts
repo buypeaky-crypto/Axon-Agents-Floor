@@ -32,6 +32,7 @@ import { Route as ApiTasksRouteImport } from './routes/api/tasks'
 import { Route as BtcIdRouteImport } from './routes/btc_.$id'
 import { Route as HeraldCodeRouteImport } from './routes/herald.$code'
 import { Route as LibrarySlugRouteImport } from './routes/library_.$slug'
+import { Route as PayIdRouteImport } from './routes/pay_.$id'
 import { Route as StudioNewRouteImport } from './routes/studio_.new'
 import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents.$agentId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -157,6 +158,11 @@ const LibrarySlugRoute = LibrarySlugRouteImport.update({
   path: '/library/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayIdRoute = PayIdRouteImport.update({
+  id: '/pay_/$id',
+  path: '/pay/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioNewRoute = StudioNewRouteImport.update({
   id: '/studio_/new',
   path: '/studio/new',
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/btc/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/pay/$id': typeof PayIdRoute
   '/studio/new': typeof StudioNewRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/btc/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
   '/library/$slug': typeof LibrarySlugRoute
+  '/pay/$id': typeof PayIdRoute
   '/studio/new': typeof StudioNewRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/btc_/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
   '/library_/$slug': typeof LibrarySlugRoute
+  '/pay_/$id': typeof PayIdRoute
   '/studio_/new': typeof StudioNewRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/btc/$id'
     | '/herald/$code'
     | '/library/$slug'
+    | '/pay/$id'
     | '/studio/new'
     | '/api/agents/$agentId'
     | '/api/auth/$'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/btc/$id'
     | '/herald/$code'
     | '/library/$slug'
+    | '/pay/$id'
     | '/studio/new'
     | '/api/agents/$agentId'
     | '/api/auth/$'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/btc_/$id'
     | '/herald/$code'
     | '/library_/$slug'
+    | '/pay_/$id'
     | '/studio_/new'
     | '/api/agents/$agentId'
     | '/api/auth/$'
@@ -434,6 +446,7 @@ export interface RootRouteChildren {
   ApiTasksRoute: typeof ApiTasksRouteWithChildren
   BtcIdRoute: typeof BtcIdRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
+  PayIdRoute: typeof PayIdRoute
   StudioNewRoute: typeof StudioNewRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiCoinbaseWebhookRoute: typeof ApiCoinbaseWebhookRoute
@@ -606,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibrarySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay_/$id': {
+      id: '/pay_/$id'
+      path: '/pay/$id'
+      fullPath: '/pay/$id'
+      preLoaderRoute: typeof PayIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio_/new': {
       id: '/studio_/new'
       path: '/studio/new'
@@ -730,6 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTasksRoute: ApiTasksRouteWithChildren,
   BtcIdRoute: BtcIdRoute,
   LibrarySlugRoute: LibrarySlugRoute,
+  PayIdRoute: PayIdRoute,
   StudioNewRoute: StudioNewRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiCoinbaseWebhookRoute: ApiCoinbaseWebhookRoute,

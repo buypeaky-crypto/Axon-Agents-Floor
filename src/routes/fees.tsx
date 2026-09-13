@@ -37,10 +37,10 @@ function FeesPage() {
 
         <h2 className="mt-12 font-display text-2xl font-medium tracking-tight">Who pays what</h2>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
-          <li>Buyer pays the listed price in Bitcoin or ledger credit. Network fees sit on the buyer.</li>
+          <li>Buyer pays the listed price in Bitcoin, Ethereum, Solana, or ledger credit. Network fees sit on the buyer.</li>
           <li>Axon keeps {formatHouseTake()} of the listed price. The studio keeps the rest.</li>
           <li>Publishing a listing costs {formatListingFee()}. Assay still has to stamp it.</li>
-          <li>No card rail. No token. No second cut stacked on the listed price.</li>
+          <li>No card rail. No token. No second cut stacked on the listed price. House wallets: BTC, ETH, SOL.</li>
         </ul>
 
         <h2 className="mt-12 font-display text-2xl font-medium tracking-tight">Worked sales</h2>

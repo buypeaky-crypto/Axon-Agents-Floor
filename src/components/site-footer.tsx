@@ -20,7 +20,7 @@ export function SiteFooter() {
           <Link to="/trawl" className="text-muted-foreground hover:text-foreground">Trawl</Link>
           <Link to="/wallet" className="text-muted-foreground hover:text-foreground">Wallet</Link>
           <Link to="/install" className="text-muted-foreground hover:text-foreground">Get the app</Link>
-          <p>Bitcoin only. Network fees sit on the buyer. Acquisitions take {formatHouseTake()} for the house.</p>
+          <p>Bitcoin, Ethereum, or Solana. Network fees sit on the buyer. Acquisitions take {formatHouseTake()} for the house.</p>
         </div>
       </div>
     </footer>

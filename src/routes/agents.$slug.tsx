@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AgentSigil } from "@/components/agent-sigil";
+import { ChainPick } from "@/components/chain-pick";
 import { ChatConsole } from "@/components/chat-console";
 import { SiteShell } from "@/components/site-shell";
 import { Stars } from "@/components/stars";
@@ -13,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { categoryLabel } from "@/lib/categories";
+import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
 import { formatHouseTake, sellerNetCents } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
@@ -46,6 +48,7 @@ function AgentPage() {
   const [needSignIn, setNeedSignIn] = useState(false);
   const [rating, setRating] = useState(5);
   const [note, setNote] = useState("");
+  const [chain, setChain] = useState<Chain>("btc");
 
   const relationQuery = useQuery({
     queryKey: queryKeys.relation(user?.id ?? "", agent.id),
@@ -56,7 +59,7 @@ function AgentPage() {
   const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
 
   const payCrypto = useMutation({
-    mutationFn: () => createCryptoCharge({ data: { agentId: agent.id } }),
+    mutationFn: () => createCryptoCharge({ data: { agentId: agent.id, chain } }),
     onSuccess: (result) => {
       sessionStorage.setItem("axon-crypto-charge", result.chargeId);
       window.location.assign(result.url);
@@ -249,11 +252,11 @@ function AgentPage() {
               </span>
             </p>
             <p className="mt-3 text-xs leading-relaxed text-subtle">
-              Bitcoin only. Pay {formatCredits(agent.priceCents)} in exact sats on the invoice, to the house
-              address. Network fees sit on you. The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after
+              Bitcoin, Ethereum, or Solana. Pay {formatCredits(agent.priceCents)} in the exact amount on the invoice, to
+              the house address. Network fees sit on you. The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after
               Axon's {formatHouseTake()} take.
             </p>
-            <div className="mt-6 space-y-2">
+            <div className="mt-6 space-y-3">
               {owned ? (
                 <Button asChild className="w-full">
                   <Link to="/library/$slug" params={{ slug: agent.slug }}>
@@ -261,26 +264,29 @@ function AgentPage() {
                   </Link>
                 </Button>
               ) : (
-                <Button
-                  className="w-full"
-                  disabled={payCrypto.isPending || isPending || !crypto.data?.configured}
-                  onClick={() => {
-                    if (!user) {
-                      setNeedSignIn(true);
-                      return;
-                    }
-                    payCrypto.mutate();
-                  }}
-                >
-                  {payCrypto.isPending
-                    ? "Opening invoice…"
-                    : user
-                      ? `Pay ${formatCredits(agent.priceCents)} with Bitcoin`
-                      : "Sign in to acquire"}
-                </Button>
+                <>
+                  <ChainPick value={chain} onChange={setChain} disabled={payCrypto.isPending} />
+                  <Button
+                    className="w-full"
+                    disabled={payCrypto.isPending || isPending || !crypto.data?.configured}
+                    onClick={() => {
+                      if (!user) {
+                        setNeedSignIn(true);
+                        return;
+                      }
+                      payCrypto.mutate();
+                    }}
+                  >
+                    {payCrypto.isPending
+                      ? "Opening invoice…"
+                      : user
+                        ? `Pay ${formatCredits(agent.priceCents)} with ${CHAIN_LABEL[chain]}`
+                        : "Sign in to acquire"}
+                  </Button>
+                </>
               )}
-              {relation && !owned && !crypto.data?.configured && (
-                <p className="text-center text-xs text-subtle">Bitcoin invoices are standing up.</p>
+                  {relation && !owned && !crypto.data?.configured && (
+                <p className="text-center text-xs text-subtle">Crypto invoices are standing up.</p>
               )}
             </div>
             <dl className="mt-6 space-y-2 text-sm">

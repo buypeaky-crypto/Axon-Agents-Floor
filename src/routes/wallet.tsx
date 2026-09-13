@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { ChainPick } from "@/components/chain-pick";
 import { SiteShell } from "@/components/site-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { CREDIT_PACKS } from "@/lib/credit-packs";
+import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
 import { confirmCryptoCharge, createCryptoCharge, getCryptoStatus } from "@/lib/server/crypto";
 import { formatHouseTake } from "@/lib/fee";
 import { formatCredits } from "@/lib/format";
@@ -38,6 +40,7 @@ function WalletPage() {
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(Boolean(sessionId || cryptoReturn || charge));
   const [cryptoWait, setCryptoWait] = useState(false);
+  const [chain, setChain] = useState<Chain>("btc");
 
   const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
   const profile = useQuery({
@@ -139,7 +142,7 @@ function WalletPage() {
   }, [user, cryptoReturn, charge, queryClient]);
 
   const cryptoPay = useMutation({
-    mutationFn: (packId: string) => createCryptoCharge({ data: { packId } }),
+    mutationFn: (packId: string) => createCryptoCharge({ data: { packId, chain } }),
     onSuccess: (result) => {
       sessionStorage.setItem(CRYPTO_CHARGE_KEY, result.chargeId);
       window.location.assign(result.url);
@@ -169,8 +172,8 @@ function WalletPage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House ledger</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight">Wallet</h1>
         <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-          Top up with Bitcoin. Network fees sit on the sender. Acquisitions take{" "}
-          {formatHouseTake()} for the house. Listing a specialist costs $1. Bitcoin only.
+          Top up with Bitcoin, Ethereum, or Solana. Network fees sit on the sender. Acquisitions take{" "}
+          {formatHouseTake()} for the house. Listing a specialist costs $1.
         </p>
 
         <div className="mt-8 rounded-2xl bg-card p-6 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">
@@ -187,9 +190,13 @@ function WalletPage() {
         </div>
 
         <h2 className="mt-10 font-display text-2xl font-medium tracking-tight">Add credit</h2>
+        <p className="mt-3 text-sm text-muted-foreground">Pick a rail, then a pack. Exact amount on the invoice.</p>
+        <div className="mt-4">
+          <ChainPick value={chain} onChange={setChain} disabled={cryptoPay.isPending} />
+        </div>
         {!cryptoOn && (
           <p className="mt-3 text-sm text-muted-foreground">
-            Bitcoin is the only rail. Invoices land on the house address.
+            Crypto invoices land on the house BTC, ETH, and SOL addresses.
           </p>
         )}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -201,7 +208,7 @@ function WalletPage() {
               <p className="font-mono text-2xl tabular-nums">{pack.label}</p>
               <p className="mt-1 text-sm text-muted-foreground">{pack.blurb}</p>
               <p className="mt-2 text-xs text-subtle">
-                Bitcoin {formatCredits(pack.cents)} to the house address — exact amount on the invoice.
+                {CHAIN_LABEL[chain]} {formatCredits(pack.cents)} to the house address — exact amount on the invoice.
               </p>
               <div className="mt-4 flex flex-col gap-2">
                 <Button
@@ -211,8 +218,8 @@ function WalletPage() {
                   {cryptoPay.isPending
                     ? "Opening invoice…"
                     : cryptoOn
-                      ? `Bitcoin ${formatCredits(pack.cents)}`
-                      : "Bitcoin unavailable"}
+                      ? `${CHAIN_LABEL[chain]} ${formatCredits(pack.cents)}`
+                      : "Crypto unavailable"}
                 </Button>
               </div>
             </article>
@@ -223,7 +230,7 @@ function WalletPage() {
         <div className="mt-4 space-y-2">
           {orders.isLoading && <Skeleton className="h-16 rounded-2xl" />}
           {orders.data && orders.data.length === 0 && (
-            <p className="text-sm text-muted-foreground">No Bitcoin orders yet.</p>
+            <p className="text-sm text-muted-foreground">No crypto orders yet.</p>
           )}
           {orders.data?.map((order) => (
             <div
@@ -233,7 +240,15 @@ function WalletPage() {
               <div>
                 <p className="text-sm">
                   {order.kind === "acquire" ? "Acquisition" : "Credit pack"} ·{" "}
-                  {order.provider === "btc" ? "bitcoin" : order.provider === "crypto" ? "crypto" : "card"}
+                  {order.provider === "btc"
+                    ? "bitcoin"
+                    : order.provider === "eth"
+                      ? "ethereum"
+                      : order.provider === "sol"
+                        ? "solana"
+                        : order.provider === "crypto"
+                          ? "crypto"
+                          : "card"}
                 </p>
                 <p className="font-mono text-xs tabular-nums text-subtle">{formatCredits(order.amountCents)}</p>
               </div>

@@ -145,7 +145,7 @@ function writePitch(agent: AgentRecord): string {
     `${agent.name} is on the floor at ${formatCredits(agent.priceCents)}.`,
     agent.tagline,
     `${agent.sellerName} trained it ${agent.hoursTrained.toLocaleString()} hours.`,
-    `Acquire the seat. Axon takes ${formatHouseTake()} of the sale. Pay with Bitcoin — sats land on the house address.`,
+    `Acquire the seat. Axon takes ${formatHouseTake()} of the sale. Pay with Bitcoin, Ethereum, or Solana — exact amount on the house address.`,
     "No cards. Herald closes. You keep the specialist.",
   ].join(" ");
 }

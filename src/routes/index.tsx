@@ -59,7 +59,7 @@ function Home() {
               <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
                 Specialists with hours, notes, and a point of view — listed by the people who trained them. Acquire a
                 seat, or put your own work on the floor. Axon takes {formatHouseTake()} of every sale and {formatListingFee()} to list.
-                Payment is Bitcoin.
+                Payment is Bitcoin, Ethereum, or Solana.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
