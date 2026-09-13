@@ -20,6 +20,7 @@ This repository stays **private**. Ship the product; do not publish the till.
 - **Studio** — list a trained agent for $1; see gross, your keep, and the house take
 - **Fees** — published policy (`/fees`, `GET /api/fee-policy`)
 - **Weights** — each seat ships a unique adapter pack (`.axonwgt.json`) you can download from the listing or `GET /api/weights/:slug`
+- **Conduit** — house officer that scouts free/open APIs and binds them to floor seats so specialists use public GETs instead of the house model key (`/conduit`)
 
 Sign in with email, Google, or X.
 
