@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssayRouteImport } from './routes/assay'
+import { Route as ConduitRouteImport } from './routes/conduit'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as FloorRouteImport } from './routes/floor'
@@ -51,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const AssayRoute = AssayRouteImport.update({
   id: '/assay',
   path: '/assay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConduitRoute = ConduitRouteImport.update({
+  id: '/conduit',
+  path: '/conduit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevelopersRoute = DevelopersRouteImport.update({
@@ -212,6 +218,7 @@ const StudioTuneSlugRoute = StudioTuneSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
+  '/conduit': typeof ConduitRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
+  '/conduit': typeof ConduitRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
+  '/conduit': typeof ConduitRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/assay'
+    | '/conduit'
     | '/developers'
     | '/fees'
     | '/floor'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/assay'
+    | '/conduit'
     | '/developers'
     | '/fees'
     | '/floor'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/assay'
+    | '/conduit'
     | '/developers'
     | '/fees'
     | '/floor'
@@ -426,6 +438,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssayRoute: typeof AssayRoute
+  ConduitRoute: typeof ConduitRoute
   DevelopersRoute: typeof DevelopersRoute
   FeesRoute: typeof FeesRoute
   FloorRoute: typeof FloorRoute
@@ -470,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/assay'
       fullPath: '/assay'
       preLoaderRoute: typeof AssayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conduit': {
+      id: '/conduit'
+      path: '/conduit'
+      fullPath: '/conduit'
+      preLoaderRoute: typeof ConduitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developers': {
@@ -730,6 +750,7 @@ const ApiTasksRouteWithChildren = ApiTasksRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssayRoute: AssayRoute,
+  ConduitRoute: ConduitRoute,
   DevelopersRoute: DevelopersRoute,
   FeesRoute: FeesRoute,
   FloorRoute: FloorRoute,

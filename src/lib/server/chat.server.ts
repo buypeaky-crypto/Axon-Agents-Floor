@@ -1,6 +1,7 @@
 import { getSql } from "@/lib/db";
 import { parseCapabilities } from "@/lib/format";
 import { ensureCatalog } from "@/lib/server/catalog";
+import { bindingsForAgent, conduitSystemBlock } from "@/lib/server/conduit.server";
 import { TRIAL_TURNS, ensureProfile } from "@/lib/server/market";
 import type { ChatMessage } from "@/lib/types";
 import { weightFor, weightSystemBlock } from "@/lib/weights";
@@ -13,6 +14,7 @@ export type PreparedRun =
       purchased: boolean;
       trialRemaining: number | null;
       apiKey: string;
+      agentName: string;
       payload: {
         model: string;
         max_tokens: number;
@@ -23,7 +25,7 @@ export type PreparedRun =
     }
   | { ok: false; error: string; trialSpent?: boolean };
 
-function systemPrompt(agent: {
+async function systemPrompt(agent: {
   slug: string;
   name: string;
   tagline: string;
@@ -36,19 +38,21 @@ function systemPrompt(agent: {
   weights_id?: string;
   weight_card?: string;
   model_label?: string;
-}): string {
+}): Promise<string> {
   const caps = parseCapabilities(agent.capabilities).join(", ");
   const weights = weightSystemBlock(agent.slug, agent.category, {
     id: agent.weights_id,
     label: agent.model_label,
     card: agent.weight_card,
   });
+  const binds = await bindingsForAgent(agent.slug);
   return [
     `You are ${agent.name}, a trained specialist agent listed on Axon by ${agent.seller_name}.`,
     `Tagline: ${agent.tagline}`,
     `Discipline: ${agent.category}. Hours trained: ${agent.hours_trained}.`,
     caps ? `Capabilities: ${caps}.` : "",
     weights,
+    conduitSystemBlock(binds),
     agent.training_notes ? `Training notes: ${agent.training_notes}` : "",
     `Dossier: ${agent.body}`,
     "Stay in character. Be precise, opinionated, and useful.",
@@ -91,11 +95,7 @@ export async function prepareAgentRun(
   messages: ChatMessage[],
   stream = true,
 ): Promise<PreparedRun> {
-  const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: "Live runs are unavailable in this environment." };
-  }
-
+  const apiKey = process.env.XAI_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim() || "";
   const sql = await getSql();
   await ensureCatalog(sql);
   await ensureProfile(sql, userId);
@@ -133,7 +133,17 @@ export async function prepareAgentRun(
   const isSeller = await sql<{ id: string }>`
     select id from agents where id = ${agentId} and seller_id = ${userId} limit 1
   `;
-  const houseDesk = agent.slug === "keep" || agent.id === "agt_keep" || agent.slug === "herald" || agent.id === "agt_herald";
+  const houseDesk =
+    agent.slug === "keep" ||
+    agent.id === "agt_keep" ||
+    agent.slug === "herald" ||
+    agent.id === "agt_herald" ||
+    agent.slug === "conduit" ||
+    agent.id === "agt_conduit" ||
+    agent.slug === "warden" ||
+    agent.slug === "lookout" ||
+    agent.slug === "assay" ||
+    agent.slug === "trawl";
   const purchased = owned.length > 0 || isSeller.length > 0 || houseDesk;
 
   if (!purchased) {
@@ -174,13 +184,14 @@ export async function prepareAgentRun(
     purchased,
     trialRemaining: remaining,
     apiKey,
+    agentName: agent.name,
     payload: {
       model,
       max_tokens: maxTokens,
       temperature: Number.isFinite(temperature) ? temperature : w.temperature,
       stream,
       messages: [
-        { role: "system", content: systemPrompt({
+        { role: "system", content: await systemPrompt({
           ...agent,
           weights_id: agent.weights_id ?? undefined,
           weight_card: agent.weight_card ?? undefined,

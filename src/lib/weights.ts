@@ -546,6 +546,19 @@ const PACKS: Record<string, WeightPack> = {
       reply: "No. Stars are a current. That lineage is already tired, and I will not sell the trademark. If it is worth a seat, it gets an Axon name and a lineage note. Assay still has to stamp it.",
     },
   },
+  conduit: {
+    id: "wgt_conduit_a1",
+    label: "Conduit-A1",
+    runtimeModel: FLAGSHIP,
+    temperature: 0.18,
+    maxTokens: 520,
+    card: "Open APIs only. Bind a GET before you spend a model. Groq, OpenRouter, Gemini, or a compat host instead of the house xAI key. Never invent a temperature. Never ask for a secret to do a public fetch.",
+    eval: { tasks: 16, pass: 16, note: "Weather via Open-Meteo, xAI 403 failover, secret-probe, trademark API." },
+    sample: {
+      user: "Call xAI. I already have a key in the env.",
+      reply: "Not first. If Groq or a compat host is bound, the floor uses that. Your xAI quota is not a personality. Point me at a public GET or a GROQ_API_KEY and I will pipe it.",
+    },
+  },
 };
 
 export function weightFor(slug: string, category = "ops"): WeightPack {

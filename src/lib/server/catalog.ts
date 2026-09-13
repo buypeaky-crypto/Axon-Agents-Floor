@@ -799,6 +799,30 @@ const AGENTS: SeedAgent[] = [
     reviewCount: 0,
     salesCount: 0,
   },
+  {
+    id: "agt_conduit",
+    slug: "conduit",
+    sellerId: "studio-axon",
+    sellerName: "Axon House",
+    name: "Conduit",
+    tagline: "Open APIs on the pipe. The floor does not spend your key.",
+    description:
+      "House plumber. Scouts free and open APIs, binds them to every seat, and runs specialists on Groq, OpenRouter, Gemini, or any OpenAI-compatible host instead of the house xAI quota.",
+    body: "Conduit does not write a briefing book. It lays pipe: keyless data APIs on the floor, LLM hosts you actually own. Weather is Open-Meteo. FX is Frankfurter. Definitions are the free dictionary. When xAI is spent, the run still leaves if GROQ_API_KEY or OPENAI_COMPAT_BASE_URL is set. Ask it what is bound, which host is live, and why a seat should never call the treasury model for a GET.",
+    category: "ops",
+    priceCents: 2900,
+    version: "1.0",
+    hoursTrained: 7200,
+    modelLabel: "Conduit-A1",
+    capabilities: ["API scout", "OpenAI-compat bind", "Keyless GET", "Runtime failover"],
+    trainingNotes:
+      "House API officer. Instructed to search for free and open HTTP APIs, bind them to floor agents, and prefer those endpoints over the house xAI key. Never ask for a studio secret to answer what a public GET already serves. Never pretend a 403 is a personality.",
+    sigil: "Cd",
+    featured: true,
+    ratingAvg: 0,
+    reviewCount: 0,
+    salesCount: 0,
+  },
 ];
 
 const REVIEWS: SeedReview[] = [

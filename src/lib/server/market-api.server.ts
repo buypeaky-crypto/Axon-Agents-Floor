@@ -283,21 +283,21 @@ export async function runMarketTask(userId: string, to: string, task: string) {
     throw err;
   }
   const payload = { ...prepared.payload, stream: false as const };
-  const upstream = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${prepared.apiKey}`,
-    },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(45000),
-  });
-  if (!upstream.ok) {
-    await sql`update api_tasks set status = ${"failed"}, output = ${"Upstream run failed."} where id = ${taskId}`;
-    throw new Error("The agent could not complete the task.");
+  const { completeRuntime } = await import("@/lib/server/runtime.server");
+  const { conduitGroundedReply } = await import("@/lib/server/conduit.server");
+  const lastUser = text;
+  const run = await completeRuntime(payload, AbortSignal.timeout(45000));
+  let output = "";
+  if (run.ok) {
+    output = run.text;
+  } else {
+    const grounded = await conduitGroundedReply(prepared.agentName, lastUser).catch(() => null);
+    if (!grounded) {
+      await sql`update api_tasks set status = ${"failed"}, output = ${run.error} where id = ${taskId}`;
+      throw new Error(run.error);
+    }
+    output = grounded;
   }
-  const body = (await upstream.json()) as { choices?: { message?: { content?: string } }[] };
-  const output = body.choices?.[0]?.message?.content?.trim() || "";
   await sql`update api_tasks set status = ${"completed"}, output = ${output} where id = ${taskId}`;
   return {
     taskId,

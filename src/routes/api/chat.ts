@@ -4,6 +4,8 @@ import { gateIdentityEnabled } from "@/lib/auth/gate-identity.server";
 import { CrossSiteRequestError, assertSameSiteRequest } from "@/lib/auth/isolation.server";
 import { DEV_USER_ID, UnauthorizedError } from "@/lib/auth/verify.server";
 import { prepareAgentRun, validateChatInput } from "@/lib/server/chat.server";
+import { conduitGroundedReply } from "@/lib/server/conduit.server";
+import { fetchRuntime } from "@/lib/server/runtime.server";
 import { GuardError, guardRequest } from "@/lib/server/guard.server";
 
 export const Route = createFileRoute("/api/chat")({
@@ -61,20 +63,38 @@ async function handleChat(request: Request): Promise<Response> {
       );
     }
 
-    const upstream = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${prepared.apiKey}`,
-      },
-      body: JSON.stringify(prepared.payload),
-      signal: request.signal,
-    });
+    const lastUser = input.messages.filter((m) => m.role === "user").at(-1)?.content ?? "";
+    const upstream = await fetchRuntime(prepared.payload, request.signal);
 
     if (!upstream.ok || !upstream.body) {
+      const grounded = await conduitGroundedReply(prepared.agentName, lastUser).catch(() => null);
+      if (grounded) {
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(
+              sse({
+                type: "meta",
+                purchased: prepared.purchased,
+                trialRemaining: prepared.trialRemaining,
+              }),
+            );
+            controller.enqueue(sse({ type: "delta", text: grounded }));
+            controller.enqueue(sse({ type: "done" }));
+            controller.close();
+          },
+        });
+        return new Response(stream, {
+          headers: {
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no",
+          },
+        });
+      }
       return Response.json(
-        { error: "The agent could not be reached. Try again in a moment." },
-        { status: 502 },
+        { error: !upstream.ok ? upstream.error : "The agent could not be reached." },
+        { status: !upstream.ok && upstream.status === 503 ? 503 : 502 },
       );
     }
 
@@ -87,7 +107,7 @@ async function handleChat(request: Request): Promise<Response> {
             trialRemaining: prepared.trialRemaining,
           }),
         );
-        const reader = upstream.body!.getReader();
+        const reader = upstream.body.getReader();
         const decoder = new TextDecoder();
         let buf = "";
         let gotText = false;
