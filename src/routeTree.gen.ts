@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssayRouteImport } from './routes/assay'
 import { Route as DevelopersRouteImport } from './routes/developers'
+import { Route as FeesRouteImport } from './routes/fees'
+import { Route as FloorRouteImport } from './routes/floor'
 import { Route as HeraldRouteImport } from './routes/herald'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -25,6 +27,7 @@ import { Route as WardenRouteImport } from './routes/warden'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as ApiAgentsRouteImport } from './routes/api/agents'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiFeePolicyRouteImport } from './routes/api/fee-policy'
 import { Route as ApiTasksRouteImport } from './routes/api/tasks'
 import { Route as BtcIdRouteImport } from './routes/btc_.$id'
 import { Route as HeraldCodeRouteImport } from './routes/herald.$code'
@@ -52,6 +55,16 @@ const AssayRoute = AssayRouteImport.update({
 const DevelopersRoute = DevelopersRouteImport.update({
   id: '/developers',
   path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeesRoute = FeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FloorRoute = FloorRouteImport.update({
+  id: '/floor',
+  path: '/floor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HeraldRoute = HeraldRouteImport.update({
@@ -117,6 +130,11 @@ const ApiAgentsRoute = ApiAgentsRouteImport.update({
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeePolicyRoute = ApiFeePolicyRouteImport.update({
+  id: '/api/fee-policy',
+  path: '/api/fee-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTasksRoute = ApiTasksRouteImport.update({
@@ -189,6 +207,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
+  '/fees': typeof FeesRoute
+  '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
@@ -202,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/agents/$slug': typeof AgentsSlugRoute
   '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/fee-policy': typeof ApiFeePolicyRoute
   '/api/tasks': typeof ApiTasksRouteWithChildren
   '/btc/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
@@ -220,6 +241,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
+  '/fees': typeof FeesRoute
+  '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
@@ -233,6 +256,7 @@ export interface FileRoutesByTo {
   '/agents/$slug': typeof AgentsSlugRoute
   '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/fee-policy': typeof ApiFeePolicyRoute
   '/api/tasks': typeof ApiTasksRouteWithChildren
   '/btc/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
@@ -252,6 +276,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/developers': typeof DevelopersRoute
+  '/fees': typeof FeesRoute
+  '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
@@ -265,6 +291,7 @@ export interface FileRoutesById {
   '/agents/$slug': typeof AgentsSlugRoute
   '/api/agents': typeof ApiAgentsRouteWithChildren
   '/api/chat': typeof ApiChatRoute
+  '/api/fee-policy': typeof ApiFeePolicyRoute
   '/api/tasks': typeof ApiTasksRouteWithChildren
   '/btc_/$id': typeof BtcIdRoute
   '/herald/$code': typeof HeraldCodeRoute
@@ -285,6 +312,8 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/developers'
+    | '/fees'
+    | '/floor'
     | '/herald'
     | '/install'
     | '/library'
@@ -298,6 +327,7 @@ export interface FileRouteTypes {
     | '/agents/$slug'
     | '/api/agents'
     | '/api/chat'
+    | '/api/fee-policy'
     | '/api/tasks'
     | '/btc/$id'
     | '/herald/$code'
@@ -316,6 +346,8 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/developers'
+    | '/fees'
+    | '/floor'
     | '/herald'
     | '/install'
     | '/library'
@@ -329,6 +361,7 @@ export interface FileRouteTypes {
     | '/agents/$slug'
     | '/api/agents'
     | '/api/chat'
+    | '/api/fee-policy'
     | '/api/tasks'
     | '/btc/$id'
     | '/herald/$code'
@@ -347,6 +380,8 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/developers'
+    | '/fees'
+    | '/floor'
     | '/herald'
     | '/install'
     | '/library'
@@ -360,6 +395,7 @@ export interface FileRouteTypes {
     | '/agents/$slug'
     | '/api/agents'
     | '/api/chat'
+    | '/api/fee-policy'
     | '/api/tasks'
     | '/btc_/$id'
     | '/herald/$code'
@@ -379,6 +415,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssayRoute: typeof AssayRoute
   DevelopersRoute: typeof DevelopersRoute
+  FeesRoute: typeof FeesRoute
+  FloorRoute: typeof FloorRoute
   HeraldRoute: typeof HeraldRouteWithChildren
   InstallRoute: typeof InstallRoute
   LibraryRoute: typeof LibraryRoute
@@ -392,6 +430,7 @@ export interface RootRouteChildren {
   AgentsSlugRoute: typeof AgentsSlugRoute
   ApiAgentsRoute: typeof ApiAgentsRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
+  ApiFeePolicyRoute: typeof ApiFeePolicyRoute
   ApiTasksRoute: typeof ApiTasksRouteWithChildren
   BtcIdRoute: typeof BtcIdRoute
   LibrarySlugRoute: typeof LibrarySlugRoute
@@ -425,6 +464,20 @@ declare module '@tanstack/react-router' {
       path: '/developers'
       fullPath: '/developers'
       preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fees': {
+      id: '/fees'
+      path: '/fees'
+      fullPath: '/fees'
+      preLoaderRoute: typeof FeesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/floor': {
+      id: '/floor'
+      path: '/floor'
+      fullPath: '/floor'
+      preLoaderRoute: typeof FloorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/herald': {
@@ -516,6 +569,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fee-policy': {
+      id: '/api/fee-policy'
+      path: '/api/fee-policy'
+      fullPath: '/api/fee-policy'
+      preLoaderRoute: typeof ApiFeePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/tasks': {
@@ -651,6 +711,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssayRoute: AssayRoute,
   DevelopersRoute: DevelopersRoute,
+  FeesRoute: FeesRoute,
+  FloorRoute: FloorRoute,
   HeraldRoute: HeraldRouteWithChildren,
   InstallRoute: InstallRoute,
   LibraryRoute: LibraryRoute,
@@ -664,6 +726,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsSlugRoute: AgentsSlugRoute,
   ApiAgentsRoute: ApiAgentsRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
+  ApiFeePolicyRoute: ApiFeePolicyRoute,
   ApiTasksRoute: ApiTasksRouteWithChildren,
   BtcIdRoute: BtcIdRoute,
   LibrarySlugRoute: LibrarySlugRoute,
