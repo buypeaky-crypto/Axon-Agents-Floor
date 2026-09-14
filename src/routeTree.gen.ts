@@ -12,16 +12,22 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssayRouteImport } from './routes/assay'
 import { Route as ConduitRouteImport } from './routes/conduit'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as FloorRouteImport } from './routes/floor'
 import { Route as HeraldRouteImport } from './routes/herald'
+import { Route as HowRouteImport } from './routes/how'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LookoutRouteImport } from './routes/lookout'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundsRouteImport } from './routes/refunds'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrawlRouteImport } from './routes/trawl'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as WardenRouteImport } from './routes/warden'
@@ -59,6 +65,11 @@ const ConduitRoute = ConduitRouteImport.update({
   path: '/conduit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevelopersRoute = DevelopersRouteImport.update({
   id: '/developers',
   path: '/developers',
@@ -77,6 +88,11 @@ const FloorRoute = FloorRouteImport.update({
 const HeraldRoute = HeraldRouteImport.update({
   id: '/herald',
   path: '/herald',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowRoute = HowRouteImport.update({
+  id: '/how',
+  path: '/how',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstallRoute = InstallRouteImport.update({
@@ -99,6 +115,21 @@ const LookoutRoute = LookoutRouteImport.update({
   path: '/lookout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundsRoute = RefundsRouteImport.update({
+  id: '/refunds',
+  path: '/refunds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
@@ -107,6 +138,11 @@ const StudioRoute = StudioRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrawlRoute = TrawlRouteImport.update({
@@ -219,16 +255,22 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/conduit': typeof ConduitRoute
+  '/contact': typeof ContactRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
+  '/how': typeof HowRoute
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/lookout': typeof LookoutRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/rules': typeof RulesRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
@@ -255,16 +297,22 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/conduit': typeof ConduitRoute
+  '/contact': typeof ContactRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
+  '/how': typeof HowRoute
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/lookout': typeof LookoutRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/rules': typeof RulesRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
@@ -292,16 +340,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/assay': typeof AssayRoute
   '/conduit': typeof ConduitRoute
+  '/contact': typeof ContactRoute
   '/developers': typeof DevelopersRoute
   '/fees': typeof FeesRoute
   '/floor': typeof FloorRoute
   '/herald': typeof HeraldRouteWithChildren
+  '/how': typeof HowRoute
   '/install': typeof InstallRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/lookout': typeof LookoutRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/rules': typeof RulesRoute
   '/studio': typeof StudioRoute
   '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/trawl': typeof TrawlRoute
   '/wallet': typeof WalletRoute
   '/warden': typeof WardenRoute
@@ -330,16 +384,22 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/conduit'
+    | '/contact'
     | '/developers'
     | '/fees'
     | '/floor'
     | '/herald'
+    | '/how'
     | '/install'
     | '/library'
     | '/login'
     | '/lookout'
+    | '/privacy'
+    | '/refunds'
+    | '/rules'
     | '/studio'
     | '/support'
+    | '/terms'
     | '/trawl'
     | '/wallet'
     | '/warden'
@@ -366,16 +426,22 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/conduit'
+    | '/contact'
     | '/developers'
     | '/fees'
     | '/floor'
     | '/herald'
+    | '/how'
     | '/install'
     | '/library'
     | '/login'
     | '/lookout'
+    | '/privacy'
+    | '/refunds'
+    | '/rules'
     | '/studio'
     | '/support'
+    | '/terms'
     | '/trawl'
     | '/wallet'
     | '/warden'
@@ -402,16 +468,22 @@ export interface FileRouteTypes {
     | '/'
     | '/assay'
     | '/conduit'
+    | '/contact'
     | '/developers'
     | '/fees'
     | '/floor'
     | '/herald'
+    | '/how'
     | '/install'
     | '/library'
     | '/login'
     | '/lookout'
+    | '/privacy'
+    | '/refunds'
+    | '/rules'
     | '/studio'
     | '/support'
+    | '/terms'
     | '/trawl'
     | '/wallet'
     | '/warden'
@@ -439,16 +511,22 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssayRoute: typeof AssayRoute
   ConduitRoute: typeof ConduitRoute
+  ContactRoute: typeof ContactRoute
   DevelopersRoute: typeof DevelopersRoute
   FeesRoute: typeof FeesRoute
   FloorRoute: typeof FloorRoute
   HeraldRoute: typeof HeraldRouteWithChildren
+  HowRoute: typeof HowRoute
   InstallRoute: typeof InstallRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
   LookoutRoute: typeof LookoutRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RefundsRoute: typeof RefundsRoute
+  RulesRoute: typeof RulesRoute
   StudioRoute: typeof StudioRoute
   SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   TrawlRoute: typeof TrawlRoute
   WalletRoute: typeof WalletRoute
   WardenRoute: typeof WardenRoute
@@ -492,6 +570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConduitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/developers': {
       id: '/developers'
       path: '/developers'
@@ -518,6 +603,13 @@ declare module '@tanstack/react-router' {
       path: '/herald'
       fullPath: '/herald'
       preLoaderRoute: typeof HeraldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how': {
+      id: '/how'
+      path: '/how'
+      fullPath: '/how'
+      preLoaderRoute: typeof HowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/install': {
@@ -548,6 +640,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LookoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refunds': {
+      id: '/refunds'
+      path: '/refunds'
+      fullPath: '/refunds'
+      preLoaderRoute: typeof RefundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio': {
       id: '/studio'
       path: '/studio'
@@ -560,6 +673,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trawl': {
@@ -751,16 +871,22 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssayRoute: AssayRoute,
   ConduitRoute: ConduitRoute,
+  ContactRoute: ContactRoute,
   DevelopersRoute: DevelopersRoute,
   FeesRoute: FeesRoute,
   FloorRoute: FloorRoute,
   HeraldRoute: HeraldRouteWithChildren,
+  HowRoute: HowRoute,
   InstallRoute: InstallRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
   LookoutRoute: LookoutRoute,
+  PrivacyRoute: PrivacyRoute,
+  RefundsRoute: RefundsRoute,
+  RulesRoute: RulesRoute,
   StudioRoute: StudioRoute,
   SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   TrawlRoute: TrawlRoute,
   WalletRoute: WalletRoute,
   WardenRoute: WardenRoute,

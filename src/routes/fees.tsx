@@ -24,7 +24,7 @@ function FeesPage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House policy</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight sm:text-5xl">Fees</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Public numbers. The same constants the till uses. No login. Bitcoin only.
+          Public numbers. The same constants the till uses. No login. Crypto only.
           Machines can read <code className="font-mono text-xs">GET /api/fee-policy</code>.
         </p>
 

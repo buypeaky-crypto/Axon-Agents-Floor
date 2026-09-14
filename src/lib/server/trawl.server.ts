@@ -1,4 +1,5 @@
 import { getSql, type Sql } from "@/lib/db";
+import { editorialDescription, editorialTagline, firstCompleteSentence, isBrokenCopy } from "@/lib/copy";
 import { MIN_LISTING_CENTS, floorListingCents } from "@/lib/fee";
 import { ensureCatalog } from "@/lib/server/catalog";
 
@@ -128,15 +129,19 @@ function toWatch(repo: GithubRepo, taken: Set<string>): TrawlWatch | null {
   const stars = Number.isFinite(Number(repo.stargazers_count)) ? Number(repo.stargazers_count) : 0;
   const price = floorListingCents(Math.min(4900, 1900 + Math.floor(Math.max(0, stars) / 2000) * 200));
   const license = repo.license?.spdx_id && repo.license.spdx_id !== "NOASSERTION" ? repo.license.spdx_id : "public traces";
+  const category = categoryFromText(`${full} ${desc}`);
+  const tagline = editorialTagline(name, desc, category);
+  if (isBrokenCopy(tagline)) return null;
+  const description = editorialDescription(name, `${desc} Lineage ${full}, ${license}.`);
   return {
     sourceId: `github:${full}`,
     name,
     slug,
     sigil,
-    category: categoryFromText(`${full} ${desc}`),
-    tagline: desc.slice(0, 88).replace(/\.$/, "") + ".",
-    description: `House packaging of a public GitHub agent lineage (${full}, ${license}). ${desc.slice(0, 140)}`,
-    body: `${name} is a house listing Trawl netted from ${full}. ${desc} The original project stays upstream. The treasury sells the seat, not the trademark. Ask it to work in character.`,
+    category,
+    tagline,
+    description,
+    body: `${name} is a house listing Trawl netted from ${full}. ${firstCompleteSentence(desc, 280)} The original project stays upstream. You acquire a trained seat — trial, then paid runtime, plus the adapter pack — not the trademark and not a dump of the repo. Ask it to work in character.`,
     capabilities: ["GitHub lineage", "House seat", "Open-source distill"],
     trainingNotes: `Trawled from ${full}. ${stars.toLocaleString()} stars at net. License: ${license}. Do not impersonate the upstream project.`,
     modelLabel: "Trawl mix",

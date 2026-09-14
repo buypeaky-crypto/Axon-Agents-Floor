@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { AcquireExplainer } from "@/components/acquire-explainer";
 import { AgentSigil } from "@/components/agent-sigil";
 import { ChainPick } from "@/components/chain-pick";
 import { ChatConsole } from "@/components/chat-console";
@@ -256,6 +257,9 @@ function AgentPage() {
               the house address. Network fees sit on you. The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after
               Axon's {formatHouseTake()} take.
             </p>
+            <div className="mt-4 rounded-xl bg-secondary p-3">
+              <AcquireExplainer compact />
+            </div>
             <div className="mt-6 space-y-3">
               {owned ? (
                 <Button asChild className="w-full">

@@ -1,4 +1,5 @@
 import type { Sql } from "@/lib/db";
+import { editorialDescription, editorialTagline, isBrokenCopy } from "@/lib/copy";
 import { MIN_LISTING_CENTS } from "@/lib/fee";
 import { weightFor } from "@/lib/weights";
 
@@ -1262,6 +1263,31 @@ export async function ensureCatalog(sql: Sql): Promise<void> {
         weight_card = ${w.card},
         max_tokens = ${w.maxTokens}
       where id = ${row.id} and weight_card = ''
+    `;
+  }
+  await repairFloorCopy(sql);
+}
+
+async function repairFloorCopy(sql: Sql): Promise<void> {
+  const rows = await sql<{
+    id: string;
+    name: string;
+    tagline: string;
+    description: string;
+    body: string;
+    category: string;
+  }>`
+    select id, name, tagline, description, body, category from agents where listed = true
+  `;
+  for (const row of rows) {
+    const tagBroken = isBrokenCopy(row.tagline);
+    const descBroken = isBrokenCopy(row.description);
+    if (!tagBroken && !descBroken) continue;
+    const source = `${row.body} ${row.description} ${row.tagline}`;
+    const tagline = tagBroken ? editorialTagline(row.name, source, row.category) : row.tagline;
+    const description = descBroken ? editorialDescription(row.name, source) : row.description;
+    await sql`
+      update agents set tagline = ${tagline}, description = ${description} where id = ${row.id}
     `;
   }
 }

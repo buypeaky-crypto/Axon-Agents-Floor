@@ -4,7 +4,6 @@ import { Stars } from "@/components/stars";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
 import { formatCount, formatCredits } from "@/lib/format";
-import { formatProof, proofScore } from "@/lib/reputation";
 import type { AgentSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +14,6 @@ export function AgentCard({
   agent: AgentSummary;
   featured?: boolean;
 }) {
-  const proof = proofScore(agent.ratingAvg, agent.reviewCount, agent.salesCount);
   return (
     <Link
       to="/agents/$slug"
@@ -37,9 +35,17 @@ export function AgentCard({
         <div className="flex flex-col gap-1">
           <span className="font-mono text-sm tabular-nums text-foreground">{formatCredits(agent.priceCents)}</span>
           <span className="flex items-center gap-1.5 text-xs text-subtle">
-            <Stars value={agent.ratingAvg} />
-            <span className="tabular-nums">rep {formatProof(proof)}</span>
-            <span className="tabular-nums">{formatCount(agent.salesCount)}</span>
+            {agent.reviewCount === 0 && agent.salesCount === 0 ? (
+              <span>New listing</span>
+            ) : (
+              <>
+                <Stars value={agent.ratingAvg} />
+                <span className="tabular-nums">{agent.reviewCount} notes</span>
+                {agent.salesCount > 0 && (
+                  <span className="tabular-nums">{formatCount(agent.salesCount)} acquired</span>
+                )}
+              </>
+            )}
           </span>
         </div>
         <span className="text-xs tracking-wide text-muted-foreground">{agent.sellerName}</span>

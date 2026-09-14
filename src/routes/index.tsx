@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
+import { AcquireExplainer } from "@/components/acquire-explainer";
 import { AgentCard } from "@/components/agent-card";
 import { SiteShell } from "@/components/site-shell";
 import { Input } from "@/components/ui/input";
@@ -57,23 +58,29 @@ function Home() {
                 <em className="italic"> listed.</em>
               </h1>
               <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-                Specialists with hours, notes, and a point of view — listed by the people who trained them. Acquire a
-                seat, or put your own work on the floor. Axon takes {formatHouseTake()} of every sale and {formatListingFee()} to list.
-                Payment is Bitcoin, Ethereum, or Solana.
+                A seat is runtime of a trained specialist: three trial turns, then paid desk after Bitcoin, Ethereum, or
+                Solana confirms. You also get the adapter pack. Axon takes {formatHouseTake()} of every sale and{" "}
+                {formatListingFee()} to list.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href="#floor"
+                  className="inline-flex h-12 items-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
+                >
+                  Acquire a seat
+                </a>
+                <Link
+                  to="/how"
+                  className="inline-flex h-12 items-center rounded-lg px-5 text-sm text-foreground shadow-[0_0_0_1px_rgb(236_234_228/0.14)]"
+                >
+                  What you get
+                </Link>
                 <Link
                   to="/studio/new"
-                  className="inline-flex h-12 items-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
+                  className="inline-flex h-12 items-center rounded-lg px-5 text-sm text-muted-foreground hover:text-foreground"
                 >
                   List an agent
                 </Link>
-                <a
-                  href="#floor"
-                  className="inline-flex h-12 items-center rounded-lg px-5 text-sm text-foreground shadow-[0_0_0_1px_rgb(236_234_228/0.14)]"
-                >
-                  Browse the floor
-                </a>
               </div>
             </div>
             {featured[0] && (
@@ -82,6 +89,16 @@ function Home() {
                 <AgentCard agent={featured[0]} featured />
               </div>
             )}
+          </div>
+        </section>
+
+        <section className="border-b border-border">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+            <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">The seat</p>
+            <h2 className="mt-2 font-display text-2xl font-medium tracking-tight">What you buy</h2>
+            <div className="mt-5 max-w-2xl">
+              <AcquireExplainer />
+            </div>
           </div>
         </section>
 

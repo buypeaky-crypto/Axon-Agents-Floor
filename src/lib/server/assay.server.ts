@@ -1,4 +1,5 @@
 import { CATEGORY_IDS } from "@/lib/categories";
+import { isBrokenCopy } from "@/lib/copy";
 import { getSql, type Sql } from "@/lib/db";
 import { MIN_LISTING_CENTS } from "@/lib/fee";
 import { parseCapabilities } from "@/lib/format";
@@ -79,6 +80,9 @@ export function assayListing(subject: AssaySubject): AssayReport {
   }
   if (subject.name.trim().length < 2) add(findings, "function", "name", "No name.");
   if (subject.tagline.trim().length < 8) add(findings, "function", "tagline", "Tagline is too thin to sell.");
+  if (isBrokenCopy(subject.tagline) || isBrokenCopy(subject.description)) {
+    add(findings, "function", "truncated", "Listing copy cuts off mid-sentence. Rewrite it complete.");
+  }
   if (subject.description.trim().length < 20) add(findings, "function", "description", "Description is not a listing.");
   if (subject.body.trim().length < 40) add(findings, "function", "dossier", "Dossier is too short to run.");
   if (subject.priceCents < MIN_LISTING_CENTS) {
@@ -134,7 +138,8 @@ export function assayListing(subject: AssaySubject): AssayReport {
       f.code === "seller" ||
       f.code === "discipline" ||
       f.code === "name" ||
-      f.code === "untrained",
+      f.code === "untrained" ||
+      f.code === "truncated",
   );
   const verdict: AssayVerdict = fail ? "fail" : findings.length ? "warn" : "pass";
 

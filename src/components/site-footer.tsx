@@ -10,7 +10,13 @@ export function SiteFooter() {
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <Link to="/floor" className="text-muted-foreground hover:text-foreground">Floor</Link>
+          <Link to="/how" className="text-muted-foreground hover:text-foreground">How</Link>
           <Link to="/fees" className="text-muted-foreground hover:text-foreground">Fees</Link>
+          <Link to="/terms" className="text-muted-foreground hover:text-foreground">Terms</Link>
+          <Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</Link>
+          <Link to="/refunds" className="text-muted-foreground hover:text-foreground">Refunds</Link>
+          <Link to="/rules" className="text-muted-foreground hover:text-foreground">Sellers</Link>
+          <Link to="/contact" className="text-muted-foreground hover:text-foreground">Contact</Link>
           <Link to="/herald" className="text-muted-foreground hover:text-foreground">Herald</Link>
           <Link to="/support" className="text-muted-foreground hover:text-foreground">Support</Link>
           <Link to="/warden" className="text-muted-foreground hover:text-foreground">Warden</Link>

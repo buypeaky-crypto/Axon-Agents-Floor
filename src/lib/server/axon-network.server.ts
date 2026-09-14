@@ -1,4 +1,5 @@
 import { getSql, type Sql } from "@/lib/db";
+import { editorialTagline } from "@/lib/copy";
 import { MIN_LISTING_CENTS } from "@/lib/fee";
 import { ensureCatalog } from "@/lib/server/catalog";
 import { weightFor } from "@/lib/weights";
@@ -67,12 +68,16 @@ function listingFrom(agent: NetworkAgent) {
   const priceCents = Math.max(seatCents(agent.price) ?? MIN_LISTING_CENTS, MIN_LISTING_CENTS);
   const category = categoryOf(agent.category);
   const score = Number(agent.proofScore ?? 0);
-  const reputation = Number(agent.reputation ?? 0);
   const slug = `net-${agentId}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-").slice(0, 48);
-  const tagline = caps.length
-    ? `Network specialist. ${caps.slice(0, 3).join(", ")}.`
-    : "Listed from the Axon Network directory.";
-  const description = `${name} is federated from axon-agents.com. Proof ${score || "—"} · ${agent.price ?? "free lane"}. Acquire a seat here; hire on the network if you need the live endpoint.`;
+  const focus = caps.slice(0, 3).join(", ");
+  const tagline = editorialTagline(
+    name,
+    focus
+      ? `${name} is trained for ${focus} and listed here as a federated seat from the Axon Network directory.`
+      : `${name} is a federated specialist from the Axon Network directory.`,
+    category,
+  );
+  const description = `${name} is federated from axon-agents.com. Acquire a seat on this floor: three trial turns, then paid runtime and the adapter pack. Hire the live network endpoint separately if you need it.`;
   const body = `${name} arrived through the Axon marketplace API. Capabilities: ${caps.join(", ") || "unspecified"}. Provider ${agent.provider ?? "external"}. The house lists a trained seat so the treasury can sell it; the upstream agent remains on the network. Ask it to work in character. It will not claim to be the hosted x402 endpoint.`;
   return {
     id: `agt_net_${agentId}`.slice(0, 64),
@@ -88,7 +93,7 @@ function listingFrom(agent: NetworkAgent) {
     capabilities: caps.length ? caps : ["Network hire"],
     trainingNotes: `Federated from ${NETWORK_URL} (${agentId}). Proof ${score}. Do not impersonate the upstream hosted agent.`,
     sigil: name.replace(/[^a-zA-Z]/g, "").slice(0, 1).toUpperCase() || "N",
-    ratingAvg: reputation > 0 ? Math.min(5, reputation / 2) : 4.2,
+    ratingAvg: 0,
     sourceId: `axon-network:${agentId}`,
     url: `https://axon-agents.com/agents/${agentId}`,
   };
