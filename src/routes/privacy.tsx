@@ -24,14 +24,15 @@ function PrivacyPage() {
         <h2>What we do not store</h2>
         <p className="mt-3">
           Private keys, seed phrases, or card numbers. Crypto is on-chain to the published house addresses. We never
-          ask for a wallet seed.
+          ask for a wallet seed. A Hugging Face token, if you bind one, stays on the host as HF_TOKEN and is not shown
+          on a listing.
         </p>
       </section>
       <section>
         <h2>Processors</h2>
         <p className="mt-3">
-          Hosting, auth, and the bound model runtime (xAI, Groq, OpenRouter, Gemini, or a compat host). Chain explorers
-          see the public invoice. GitHub may see public issues you file.
+          Hosting, auth, and the bound model runtime (xAI, Groq, Hugging Face, OpenRouter, Gemini, or a compat host).
+          Chain explorers see the public invoice. GitHub may see public issues you file.
         </p>
       </section>
     </LegalPage>

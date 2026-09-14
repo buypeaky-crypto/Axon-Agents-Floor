@@ -10,7 +10,7 @@ function ContactPage() {
     <LegalPage
       kicker="House"
       title="Contact"
-      lede="Keep is the 24/7 desk. GitHub is the paper trail."
+      lede="Keep is the 24/7 desk. GitHub is the paper trail. Mail reaches the founder."
     >
       <section>
         <h2>Support</h2>
@@ -20,6 +20,16 @@ function ContactPage() {
             Keep
           </Link>{" "}
           for a live seat. For invoices that confirmed without an unlock, include the invoice id and the txid.
+        </p>
+      </section>
+      <section>
+        <h2>Mail</h2>
+        <p className="mt-3">
+          Founder desk:{" "}
+          <a href="mailto:buypeaky@gmail.com" className="underline-offset-4 hover:underline">
+            buypeaky@gmail.com
+          </a>
+          . Use that for refunds that need a human, lineage takedowns, and Hugging Face token questions.
         </p>
       </section>
       <section>

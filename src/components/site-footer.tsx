@@ -25,6 +25,7 @@ export function SiteFooter() {
           <Link to="/lookout" className="text-muted-foreground hover:text-foreground">Lookout</Link>
           <Link to="/trawl" className="text-muted-foreground hover:text-foreground">Trawl</Link>
           <Link to="/conduit" className="text-muted-foreground hover:text-foreground">Conduit</Link>
+          <Link to="/huggingface" className="text-muted-foreground hover:text-foreground">Hugging Face</Link>
           <Link to="/wallet" className="text-muted-foreground hover:text-foreground">Wallet</Link>
           <Link to="/install" className="text-muted-foreground hover:text-foreground">Get the app</Link>
           <p>Bitcoin, Ethereum, or Solana. Network fees sit on the buyer. Acquisitions take {formatHouseTake()} for the house.</p>
