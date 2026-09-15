@@ -3,7 +3,8 @@ node_modules/
 .github_repo
 .env
 .env.*
-.grok/status
+.grok/paypal.json
+.grok/*.secret.json
 attachments/
 screenshots/
 dist/

@@ -236,14 +236,12 @@ function WalletPage() {
                 </Button>
                 <Button
                   variant="secondary"
-                  disabled={!paypal.data?.configured || paypalPay.isPending}
+                  disabled={paypalPay.isPending}
                   onClick={() => paypalPay.mutate(pack.id)}
                 >
                   {paypalPay.isPending
                     ? "Opening PayPal…"
-                    : paypal.data?.configured
-                      ? `PayPal ${formatCredits(buyerPaypalTotalCents(pack.cents))}`
-                      : "PayPal unbound"}
+                    : `PayPal ${formatCredits(buyerPaypalTotalCents(pack.cents))}`}
                 </Button>
               </div>
             </article>

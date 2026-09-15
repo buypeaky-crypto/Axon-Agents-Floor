@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { PAYPAL_LIVE } from "@/lib/rails";
+import { PAYPAL_JS_CLIENT_ID } from "@/lib/paypal-public";
 
 export const getPaypalStatus = createServerFn({ method: "GET" }).handler(async () => {
   if (!PAYPAL_LIVE) return { configured: false as const, clientId: "", mode: "sandbox" as const };
@@ -8,7 +9,7 @@ export const getPaypalStatus = createServerFn({ method: "GET" }).handler(async (
   const configured = paypalConfigured();
   return {
     configured,
-    clientId: configured ? paypalClientId() ?? "" : "",
+    clientId: paypalClientId() || PAYPAL_JS_CLIENT_ID,
     mode: paypalMode(),
   };
 });

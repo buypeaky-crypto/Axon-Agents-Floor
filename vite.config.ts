@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
@@ -19,6 +19,35 @@ function hasGlobbedMigrations(root: string): boolean {
   } catch {
     return false;
   }
+}
+
+function paypalHousePlugin(): Plugin {
+  return {
+    name: "axon:paypal-house",
+    enforce: "pre",
+    transform(code, id) {
+      if (!id.includes("paypal.server.ts") || !code.includes("grok-paypal-secret")) return;
+      let house: { PAYPAL_CLIENT_ID?: string; PAYPAL_CLIENT_SECRET?: string; PAYPAL_MODE?: string } = {};
+      for (const p of [join(process.cwd(), ".grok/paypal.json"), "/workspace/.grok/paypal.json"]) {
+        try {
+          if (existsSync(p)) {
+            house = JSON.parse(readFileSync(p, "utf8")) as typeof house;
+            break;
+          }
+        } catch {
+          /* skip */
+        }
+      }
+      const secret = house.PAYPAL_CLIENT_SECRET?.trim() || "";
+      const clientId = house.PAYPAL_CLIENT_ID?.trim() || "";
+      const mode = house.PAYPAL_MODE?.trim() || "";
+      if (!secret && !clientId) return;
+      return code
+        .replace("const BUNDLED_PAYPAL_SECRET = \"\"; // grok-paypal-secret", `const BUNDLED_PAYPAL_SECRET = ${JSON.stringify(secret)}; // grok-paypal-secret`)
+        .replace("const BUNDLED_PAYPAL_CLIENT_ID = \"\"; // grok-paypal-id", `const BUNDLED_PAYPAL_CLIENT_ID = ${JSON.stringify(clientId)}; // grok-paypal-id`)
+        .replace("const BUNDLED_PAYPAL_MODE = \"\"; // grok-paypal-mode", `const BUNDLED_PAYPAL_MODE = ${JSON.stringify(mode)}; // grok-paypal-mode`);
+    },
+  };
 }
 
 /**
@@ -165,6 +194,7 @@ export default defineConfig(({ command, isPreview }) => ({
     appEnvPlugin(),
     // PWA head + ?install=1 tutorial page; runs before Start/Nitro.
     grokPwaPlugin(),
+    paypalHousePlugin(),
     tailwindcss(),
     tanstackStart(),
     ...(command === "build" || isPreview

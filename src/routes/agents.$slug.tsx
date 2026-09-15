@@ -18,6 +18,7 @@ import { categoryLabel } from "@/lib/categories";
 import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
 import { buyerPaypalTotalCents, formatHouseTake, sellerNetCents } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
+import { PAYPAL_JS_CLIENT_ID } from "@/lib/paypal-public";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import { queryKeys } from "@/lib/query";
 import { addReview, getAgent, getMyRelation } from "@/lib/server/market";
@@ -336,7 +337,7 @@ function AgentPage() {
                         ? `Pay ${formatCredits(agent.priceCents)} with ${CHAIN_LABEL[chain]}`
                         : "Sign in to acquire"}
                   </Button>
-                  {paypal.data?.configured && (
+                  {(paypal.data?.configured || PAYPAL_JS_CLIENT_ID) && (
                     <Button
                       variant="secondary"
                       className="w-full"

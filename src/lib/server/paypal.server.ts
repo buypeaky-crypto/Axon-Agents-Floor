@@ -11,10 +11,13 @@ import {
   OrdersController,
   type Order,
 } from "@paypal/paypal-server-sdk";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { getRequest } from "@tanstack/react-start/server";
 import { packById } from "@/lib/credit-packs";
 import { getSql } from "@/lib/db";
 import { buyerPaypalTotalCents } from "@/lib/fee";
+import { PAYPAL_JS_CLIENT_ID } from "@/lib/paypal-public";
 import { grantCredits, grantPurchaseFromStripe } from "@/lib/server/market";
 import { ensureStripeTables } from "@/lib/server/stripe.server";
 
@@ -22,9 +25,37 @@ type CheckoutKind = "credit" | "acquire";
 
 let orders: OrdersController | null = null;
 
+/** Inlined at production build from gitignored `.grok/paypal.json`. Empty in git. */
+const BUNDLED_PAYPAL_SECRET = ""; // grok-paypal-secret
+const BUNDLED_PAYPAL_CLIENT_ID = ""; // grok-paypal-id
+const BUNDLED_PAYPAL_MODE = ""; // grok-paypal-mode
+
+type HousePaypal = { PAYPAL_CLIENT_ID?: string; PAYPAL_CLIENT_SECRET?: string; PAYPAL_MODE?: string };
+
+function houseFile(): HousePaypal {
+  const paths = [join(process.cwd(), ".grok/paypal.json"), "/workspace/.grok/paypal.json"];
+  for (const p of paths) {
+    try {
+      if (!existsSync(p)) continue;
+      return JSON.parse(readFileSync(p, "utf8")) as HousePaypal;
+    } catch {
+      /* skip */
+    }
+  }
+  return {};
+}
+
 function env(name: string): string | undefined {
   const v = process.env[name]?.trim();
-  return v || undefined;
+  if (v) return v;
+  const file = houseFile();
+  const fromFile = file[name as keyof HousePaypal]?.trim();
+  if (fromFile) return fromFile;
+  if (name === "PAYPAL_CLIENT_SECRET" && BUNDLED_PAYPAL_SECRET) return BUNDLED_PAYPAL_SECRET;
+  if (name === "PAYPAL_CLIENT_ID" && BUNDLED_PAYPAL_CLIENT_ID) return BUNDLED_PAYPAL_CLIENT_ID;
+  if (name === "PAYPAL_MODE" && BUNDLED_PAYPAL_MODE) return BUNDLED_PAYPAL_MODE;
+  if (name === "PAYPAL_CLIENT_ID") return PAYPAL_JS_CLIENT_ID;
+  return undefined;
 }
 
 export function paypalConfigured(): boolean {
@@ -32,8 +63,8 @@ export function paypalConfigured(): boolean {
 }
 
 export function paypalMode(): "sandbox" | "live" {
-  const mode = (env("PAYPAL_MODE") || env("PAYPAL_ENV") || "sandbox").toLowerCase();
-  return mode === "live" || mode === "production" ? "live" : "sandbox";
+  const mode = (env("PAYPAL_MODE") || env("PAYPAL_ENV") || "live").toLowerCase();
+  return mode === "sandbox" ? "sandbox" : "live";
 }
 
 export function paypalClientId(): string | undefined {
