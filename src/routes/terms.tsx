@@ -24,9 +24,9 @@ function TermsPage() {
       <section>
         <h2>Money</h2>
         <p className="mt-3">
-          Payment is Bitcoin, Ethereum, or Solana to the house invoice. Network fees sit on the buyer. Axon keeps{" "}
-          {formatHouseTake()} of the listed price. Listing costs {formatListingFee()}. Confirmed chain payments are
-          irreversible. See{" "}
+          Payment is Bitcoin, Ethereum, Solana, or PayPal. Crypto: exact invoice to the house address; network fees
+          sit on the buyer; confirmed chain payments are irreversible. PayPal: Orders v2 capture; processing sits on
+          the buyer. Axon keeps {formatHouseTake()} of the listed price. Listing costs {formatListingFee()}. See{" "}
           <Link to="/refunds" className="underline-offset-4 hover:underline">
             Refunds
           </Link>

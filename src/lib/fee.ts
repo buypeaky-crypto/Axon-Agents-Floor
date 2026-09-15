@@ -39,6 +39,21 @@ export function buyerCardTotalCents(priceCents: number): number {
   return priceCents + cardSurchargeCents(priceCents);
 }
 
+/** Extra charged to the buyer so PayPal's cut does not eat the house or the studio. */
+export const PAYPAL_PERCENT_BPS = 349;
+export const PAYPAL_FLAT_CENTS = 49;
+
+export function paypalSurchargeCents(priceCents: number): number {
+  if (!Number.isFinite(priceCents) || priceCents <= 0) return 0;
+  return Math.ceil(
+    (priceCents * PAYPAL_PERCENT_BPS + PAYPAL_FLAT_CENTS * 10000) / (10000 - PAYPAL_PERCENT_BPS),
+  );
+}
+
+export function buyerPaypalTotalCents(priceCents: number): number {
+  return priceCents + paypalSurchargeCents(priceCents);
+}
+
 export function formatFeePercent(): string {
   return `${FEE_PERCENT}%`;
 }

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/buypeaky-crypto/Axon-Agents-Floor/actions/workflows/ci.yml/badge.svg)](https://github.com/buypeaky-crypto/Axon-Agents-Floor/actions/workflows/ci.yml)
 
-A marketplace for **trained AI agent seats**. Browse a listing, read the dossier, pay in crypto, run the specialist.
+A marketplace for **trained AI agent seats**. Browse a listing, read the dossier, pay in crypto or PayPal, run the specialist.
 
 Live preview: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.grok.me)
 
@@ -11,7 +11,7 @@ Live preview: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.gr
 A **seat** is:
 
 1. Three trial turns of that specialist.
-2. Paid runtime in your library after Bitcoin, Ethereum, or Solana confirms.
+2. Paid runtime in your library after Bitcoin, Ethereum, or Solana confirms, or PayPal captures.
 3. The adapter pack (`.axonwgt.json`) — eval card, sample turn, weights id. Not a fine-tuned model dump, not the upstream GitHub repo, not a hosted bot on another platform.
 
 Axon takes **10%** of every sale and **$1** to list. Nothing lists under **$19**. Network fees sit on the buyer. Sales stay at zero until a confirmed invoice lands.
@@ -21,7 +21,7 @@ Axon takes **10%** of every sale and **$1** to list. Nothing lists under **$19**
 - **Market** `/` — search and filter by discipline. Cards link to one page per agent.
 - **Listing** `/agents/:slug` — what it does, sample output, what you receive, who trained it, limits, then pay.
 - **List** `/studio/new` — write a complete dossier. Assay refuses truncated copy, hostile payloads, and prices under $19.
-- **Pay** — exact-amount BTC / ETH / SOL invoice to the house addresses. Cards are off.
+- **Pay** — exact-amount BTC / ETH / SOL invoice to the house addresses, or PayPal Checkout (Orders v2). Stripe cards stay off. Bind `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Optional `PAYPAL_MODE=live`. Webhook: `/api/paypal/webhook`.
 - **Legal** — [Terms](https://mint-tango-apple-lotus.grok.me/terms), [Privacy](https://mint-tango-apple-lotus.grok.me/privacy), [Refunds](https://mint-tango-apple-lotus.grok.me/refunds), [Seller rules](https://mint-tango-apple-lotus.grok.me/rules), [Contact](https://mint-tango-apple-lotus.grok.me/contact).
 - **Fees** — `/fees` and `GET /api/fee-policy`.
 

@@ -16,12 +16,13 @@ import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { categoryLabel } from "@/lib/categories";
 import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
-import { formatHouseTake, sellerNetCents } from "@/lib/fee";
+import { buyerPaypalTotalCents, formatHouseTake, sellerNetCents } from "@/lib/fee";
 import { formatCount, formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import { queryKeys } from "@/lib/query";
 import { addReview, getAgent, getMyRelation } from "@/lib/server/market";
 import { createCryptoCharge, getCryptoStatus } from "@/lib/server/crypto";
+import { createPaypalOrder, getPaypalStatus } from "@/lib/server/paypal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/agents/$slug")({
@@ -58,6 +59,7 @@ function AgentPage() {
   });
   const relation = relationQuery.data ?? null;
   const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
+  const paypal = useQuery({ queryKey: ["paypal-status"], queryFn: () => getPaypalStatus() });
 
   const payCrypto = useMutation({
     mutationFn: () => createCryptoCharge({ data: { agentId: agent.id, chain } }),
@@ -71,6 +73,20 @@ function AgentPage() {
         return;
       }
       toast.error(err instanceof Error ? err.message : "Could not start crypto checkout.");
+    },
+  });
+
+  const payPaypal = useMutation({
+    mutationFn: () => createPaypalOrder({ data: { agentId: agent.id } }),
+    onSuccess: (result) => {
+      window.location.assign(result.url);
+    },
+    onError: (err) => {
+      if (isUnauthorized(err)) {
+        setNeedSignIn(true);
+        return;
+      }
+      toast.error(err instanceof Error ? err.message : "Could not start PayPal checkout.");
     },
   });
 
@@ -173,7 +189,7 @@ function AgentPage() {
                     <li>Three trial turns, then the seat stays locked until the invoice confirms.</li>
                     <li>It stays in this specialty. Out-of-scope work is a one-line refuse.</li>
                     <li>You buy a seat, not the upstream repo, not a fine-tuned model file, not a hosted bot elsewhere.</li>
-                    <li>Crypto that confirms is a sale. Wrong chain or wrong amount is not a refund.</li>
+                    <li>Crypto that confirms is a sale. PayPal capture is a sale. Wrong chain or wrong amount is not a refund.</li>
                     <li>Messages cap at 1,800 characters. The run can still be wrong — read the sample first.</li>
                   </ul>
                 </section>
@@ -286,9 +302,9 @@ function AgentPage() {
               </span>
             </p>
             <p className="mt-3 text-xs leading-relaxed text-subtle">
-              Bitcoin, Ethereum, or Solana. Pay {formatCredits(agent.priceCents)} in the exact amount on the invoice, to
-              the house address. Network fees sit on you. The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after
-              Axon's {formatHouseTake()} take.
+              Bitcoin, Ethereum, Solana, or PayPal. Crypto: pay {formatCredits(agent.priceCents)} exact to the house
+              address. PayPal: {formatCredits(buyerPaypalTotalCents(agent.priceCents))} so their processing sits on you.
+              The studio keeps {formatCredits(sellerNetCents(agent.priceCents))} after Axon's {formatHouseTake()} take.
             </p>
             <div className="mt-4 rounded-xl bg-secondary p-3">
               <AcquireExplainer compact />
@@ -320,6 +336,24 @@ function AgentPage() {
                         ? `Pay ${formatCredits(agent.priceCents)} with ${CHAIN_LABEL[chain]}`
                         : "Sign in to acquire"}
                   </Button>
+                  {paypal.data?.configured && (
+                    <Button
+                      variant="secondary"
+                      className="w-full"
+                      disabled={payPaypal.isPending || isPending}
+                      onClick={() => {
+                        if (!user) {
+                          setNeedSignIn(true);
+                          return;
+                        }
+                        payPaypal.mutate();
+                      }}
+                    >
+                      {payPaypal.isPending
+                        ? "Opening PayPal…"
+                        : `PayPal ${formatCredits(buyerPaypalTotalCents(agent.priceCents))}`}
+                    </Button>
+                  )}
                 </>
               )}
                   {relation && !owned && !crypto.data?.configured && (

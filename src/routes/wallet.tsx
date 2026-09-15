@@ -12,7 +12,8 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { CREDIT_PACKS } from "@/lib/credit-packs";
 import { CHAIN_LABEL, type Chain } from "@/lib/crypto-rails";
 import { confirmCryptoCharge, createCryptoCharge, getCryptoStatus } from "@/lib/server/crypto";
-import { formatHouseTake } from "@/lib/fee";
+import { createPaypalOrder, getPaypalStatus } from "@/lib/server/paypal";
+import { buyerPaypalTotalCents, formatHouseTake } from "@/lib/fee";
 import { formatCredits } from "@/lib/format";
 import { isUnauthorized } from "@/lib/is-unauthorized";
 import { queryKeys } from "@/lib/query";
@@ -43,6 +44,7 @@ function WalletPage() {
   const [chain, setChain] = useState<Chain>("btc");
 
   const crypto = useQuery({ queryKey: ["crypto-status"], queryFn: () => getCryptoStatus() });
+  const paypal = useQuery({ queryKey: ["paypal-status"], queryFn: () => getPaypalStatus() });
   const profile = useQuery({
     queryKey: queryKeys.profile(user?.id ?? ""),
     queryFn: () => getMyProfile(),
@@ -152,6 +154,16 @@ function WalletPage() {
     },
   });
 
+  const paypalPay = useMutation({
+    mutationFn: (packId: string) => createPaypalOrder({ data: { packId } }),
+    onSuccess: (result) => {
+      window.location.assign(result.url);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Could not start PayPal checkout.");
+    },
+  });
+
   if (isPending) {
     return (
       <SiteShell>
@@ -172,8 +184,9 @@ function WalletPage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House ledger</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight">Wallet</h1>
         <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-          Top up with Bitcoin, Ethereum, or Solana. Network fees sit on the sender. Acquisitions take{" "}
-          {formatHouseTake()} for the house. Listing a specialist costs $1.
+          Top up with Bitcoin, Ethereum, Solana, or PayPal. Crypto network fees sit on the sender. PayPal
+          processing sits on the buyer. Acquisitions take {formatHouseTake()} for the house. Listing a specialist
+          costs $1.
         </p>
 
         <div className="mt-8 rounded-2xl bg-card p-6 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">
@@ -190,7 +203,7 @@ function WalletPage() {
         </div>
 
         <h2 className="mt-10 font-display text-2xl font-medium tracking-tight">Add credit</h2>
-        <p className="mt-3 text-sm text-muted-foreground">Pick a rail, then a pack. Exact amount on the invoice.</p>
+        <p className="mt-3 text-sm text-muted-foreground">Pick a rail, then a pack. Crypto is exact-amount. PayPal includes processing.</p>
         <div className="mt-4">
           <ChainPick value={chain} onChange={setChain} disabled={cryptoPay.isPending} />
         </div>
@@ -208,7 +221,7 @@ function WalletPage() {
               <p className="font-mono text-2xl tabular-nums">{pack.label}</p>
               <p className="mt-1 text-sm text-muted-foreground">{pack.blurb}</p>
               <p className="mt-2 text-xs text-subtle">
-                {CHAIN_LABEL[chain]} {formatCredits(pack.cents)} to the house address — exact amount on the invoice.
+                {CHAIN_LABEL[chain]} {formatCredits(pack.cents)} exact, or PayPal {formatCredits(buyerPaypalTotalCents(pack.cents))} including processing.
               </p>
               <div className="mt-4 flex flex-col gap-2">
                 <Button
@@ -220,6 +233,17 @@ function WalletPage() {
                     : cryptoOn
                       ? `${CHAIN_LABEL[chain]} ${formatCredits(pack.cents)}`
                       : "Crypto unavailable"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={!paypal.data?.configured || paypalPay.isPending}
+                  onClick={() => paypalPay.mutate(pack.id)}
+                >
+                  {paypalPay.isPending
+                    ? "Opening PayPal…"
+                    : paypal.data?.configured
+                      ? `PayPal ${formatCredits(buyerPaypalTotalCents(pack.cents))}`
+                      : "PayPal unbound"}
                 </Button>
               </div>
             </article>
@@ -246,9 +270,11 @@ function WalletPage() {
                       ? "ethereum"
                       : order.provider === "sol"
                         ? "solana"
-                        : order.provider === "crypto"
-                          ? "crypto"
-                          : "card"}
+                        : order.provider === "paypal"
+                          ? "paypal"
+                          : order.provider === "crypto"
+                            ? "crypto"
+                            : "card"}
                 </p>
                 <p className="font-mono text-xs tabular-nums text-subtle">{formatCredits(order.amountCents)}</p>
               </div>

@@ -10,7 +10,7 @@ function RefundsPage() {
     <LegalPage
       kicker="Legal"
       title="Refunds"
-      lede="Crypto that confirms is a sale. We do not unwind a chain."
+      lede="Crypto that confirms is a sale. We do not unwind a chain. PayPal captures follow this page plus PayPal's own dispute desk."
     >
       <section>
         <h2>When we will not refund</h2>
@@ -18,6 +18,7 @@ function RefundsPage() {
           <li>The invoice confirmed and the seat unlocked in your library.</li>
           <li>You spent trial turns and did not like the specialist.</li>
           <li>You sent the wrong asset, the wrong chain, or a different amount.</li>
+          <li>PayPal captured and the seat unlocked. Open a PayPal dispute only if the capture posted and the seat did not.</li>
         </ul>
       </section>
       <section>
