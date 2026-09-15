@@ -1,26 +1,26 @@
+import {
+  ApiError,
+  CaptureStatus,
+  CheckoutPaymentIntent,
+  Client,
+  Environment,
+  ItemCategory,
+  OrderApplicationContextShippingPreference,
+  OrderApplicationContextUserAction,
+  OrderStatus,
+  OrdersController,
+  type Order,
+} from "@paypal/paypal-server-sdk";
 import { getRequest } from "@tanstack/react-start/server";
 import { packById } from "@/lib/credit-packs";
 import { getSql } from "@/lib/db";
-import { buyerPaypalTotalCents, paypalSurchargeCents } from "@/lib/fee";
+import { buyerPaypalTotalCents } from "@/lib/fee";
 import { grantCredits, grantPurchaseFromStripe } from "@/lib/server/market";
 import { ensureStripeTables } from "@/lib/server/stripe.server";
 
 type CheckoutKind = "credit" | "acquire";
 
-type PaypalOrder = {
-  id?: string;
-  status?: string;
-  purchase_units?: {
-    custom_id?: string;
-    amount?: { value?: string; currency_code?: string };
-    payments?: { captures?: { id?: string; status?: string; amount?: { value?: string } }[] };
-  }[];
-  error?: string;
-  message?: string;
-  details?: { issue?: string; description?: string }[];
-};
-
-let tokenCache: { access: string; exp: number } | null = null;
+let orders: OrdersController | null = null;
 
 function env(name: string): string | undefined {
   const v = process.env[name]?.trim();
@@ -40,8 +40,21 @@ export function paypalClientId(): string | undefined {
   return env("PAYPAL_CLIENT_ID");
 }
 
-function paypalApi(): string {
-  return paypalMode() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+function ordersController(): OrdersController {
+  const id = env("PAYPAL_CLIENT_ID");
+  const secret = env("PAYPAL_CLIENT_SECRET");
+  if (!id || !secret) throw new Error("PayPal is not bound. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.");
+  if (orders) return orders;
+  const client = new Client({
+    clientCredentialsAuthCredentials: {
+      oAuthClientId: id,
+      oAuthClientSecret: secret,
+    },
+    timeout: 20_000,
+    environment: paypalMode() === "live" ? Environment.Production : Environment.Sandbox,
+  });
+  orders = new OrdersController(client);
+  return orders;
 }
 
 function publicOrigin(): string {
@@ -59,49 +72,65 @@ function usd(cents: number): string {
   return (Math.max(0, Math.round(cents)) / 100).toFixed(2);
 }
 
-async function accessToken(): Promise<string> {
-  const id = env("PAYPAL_CLIENT_ID");
-  const secret = env("PAYPAL_CLIENT_SECRET");
-  if (!id || !secret) throw new Error("PayPal is not bound. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.");
-  if (tokenCache && tokenCache.exp > Date.now() + 15_000) return tokenCache.access;
-  const res = await fetch(`${paypalApi()}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-    signal: AbortSignal.timeout(15000),
-  });
-  const json = (await res.json()) as { access_token?: string; expires_in?: number; error_description?: string };
-  if (!res.ok || !json.access_token) {
-    throw new Error(json.error_description || "PayPal refused the client credentials.");
-  }
-  tokenCache = {
-    access: json.access_token,
-    exp: Date.now() + Math.max(30, Number(json.expires_in ?? 300)) * 1000,
-  };
-  return json.access_token;
+function sdkFail(error: unknown): never {
+  if (error instanceof ApiError) throw new Error(error.message);
+  throw error instanceof Error ? error : new Error("PayPal failed.");
 }
 
-async function paypalRequest(method: "GET" | "POST", path: string, body?: unknown): Promise<PaypalOrder> {
-  const token = await accessToken();
-  const res = await fetch(`${paypalApi()}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(20000),
-  });
-  const json = (await res.json().catch(() => ({}))) as PaypalOrder;
-  if (!res.ok) {
-    const detail = json.details?.[0]?.description || json.message || json.error || `PayPal ${res.status}`;
-    throw new Error(detail);
+function captureCompleted(order: Order): boolean {
+  if (order.status === OrderStatus.Completed) return true;
+  return order.purchaseUnits?.[0]?.payments?.captures?.[0]?.status === CaptureStatus.Completed;
+}
+
+async function createPaypalSdkOrder(input: {
+  axonId: string;
+  name: string;
+  sku: string;
+  totalCents: number;
+}): Promise<Order> {
+  const origin = publicOrigin();
+  const value = usd(input.totalCents);
+  try {
+    const { result } = await ordersController().createOrder({
+      body: {
+        intent: CheckoutPaymentIntent.Capture,
+        purchaseUnits: [
+          {
+            referenceId: input.axonId.replace(/-/g, "").slice(0, 256),
+            invoiceId: input.axonId,
+            customId: input.axonId,
+            description: input.name.slice(0, 127),
+            amount: {
+              currencyCode: "USD",
+              value,
+              breakdown: { itemTotal: { currencyCode: "USD", value } },
+            },
+            items: [
+              {
+                name: input.name.slice(0, 127),
+                unitAmount: { currencyCode: "USD", value },
+                quantity: "1",
+                description: "Axon specialist seat or ledger credit.",
+                sku: input.sku.slice(0, 127),
+                category: ItemCategory.DigitalGoods,
+              },
+            ],
+          },
+        ],
+        applicationContext: {
+          brandName: "Axon",
+          shippingPreference: OrderApplicationContextShippingPreference.NoShipping,
+          userAction: OrderApplicationContextUserAction.PayNow,
+          returnUrl: `${origin}/wallet?paypal=1`,
+          cancelUrl: `${origin}/wallet?canceled=1`,
+        },
+      },
+      prefer: "return=representation",
+    });
+    return result;
+  } catch (error) {
+    sdkFail(error);
   }
-  return json;
 }
 
 export async function startPaypalOrder(
@@ -109,11 +138,11 @@ export async function startPaypalOrder(
   data: { packId?: string; agentId?: string; heraldCode?: string },
 ): Promise<{ orderId: string; url: string; totalCents: number }> {
   if (!paypalConfigured()) throw new Error("PayPal is not bound on this host.");
-  const origin = publicOrigin();
   let kind: CheckoutKind;
   let amount: number;
   let name: string;
   let agentId: string | undefined;
+  let sku: string;
   const sql = await getSql();
   await ensureStripeTables(sql);
 
@@ -128,36 +157,19 @@ export async function startPaypalOrder(
     amount = Number(agent.price_cents);
     name = `Acquire ${agent.name}`;
     agentId = data.agentId;
+    sku = data.agentId;
   } else {
     const pack = packById(data.packId ?? "");
     if (!pack) throw new Error("Pick a credit pack.");
     kind = "credit";
     amount = pack.cents;
     name = `Axon credit ${pack.label}`;
+    sku = pack.id;
   }
 
-  const processing = paypalSurchargeCents(amount);
   const total = buyerPaypalTotalCents(amount);
   const axonId = crypto.randomUUID();
-  const order = await paypalRequest("POST", "/v2/checkout/orders", {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        reference_id: axonId.replace(/-/g, "").slice(0, 256),
-        invoice_id: axonId,
-        custom_id: axonId,
-        description: name.slice(0, 127),
-        amount: { currency_code: "USD", value: usd(total) },
-      },
-    ],
-    application_context: {
-      brand_name: "Axon",
-      shipping_preference: "NO_SHIPPING",
-      user_action: "PAY_NOW",
-      return_url: `${origin}/wallet?paypal=1`,
-      cancel_url: `${origin}/wallet?canceled=1`,
-    },
-  });
+  const order = await createPaypalSdkOrder({ axonId, name, sku, totalCents: total });
   if (!order.id) throw new Error("PayPal did not return an order.");
 
   await sql`
@@ -173,7 +185,6 @@ export async function startPaypalOrder(
       ${"paypal"}
     )
   `;
-  void processing;
   return { orderId: order.id, url: `/paypal/${order.id}`, totalCents: total };
 }
 
@@ -192,7 +203,6 @@ async function fulfillPaypalOrder(orderId: string): Promise<{
     amount_cents: number;
     agent_id: string | null;
     status: string;
-    herald_code?: string | null;
   }>`
     select id, user_id, kind, amount_cents, agent_id, status
     from credit_orders
@@ -234,10 +244,27 @@ async function fulfillPaypalOrder(orderId: string): Promise<{
   return { credits: result.credits, kind: "acquire", already: result.already, name: result.name };
 }
 
-function captureCompleted(order: PaypalOrder): boolean {
-  if (order.status === "COMPLETED") return true;
-  const capture = order.purchase_units?.[0]?.payments?.captures?.[0];
-  return capture?.status === "COMPLETED";
+async function getSdkOrder(orderId: string): Promise<Order> {
+  try {
+    const { result } = await ordersController().getOrder({ id: orderId });
+    return result;
+  } catch (error) {
+    sdkFail(error);
+  }
+}
+
+async function captureSdkOrder(orderId: string): Promise<Order> {
+  try {
+    const { result } = await ordersController().captureOrder({
+      id: orderId,
+      prefer: "return=representation",
+    });
+    return result;
+  } catch (error) {
+    const msg = error instanceof ApiError ? error.message : error instanceof Error ? error.message : "";
+    if (/already captured|ORDER_ALREADY_CAPTURED/i.test(msg)) return getSdkOrder(orderId);
+    sdkFail(error);
+  }
 }
 
 export async function capturePaypalOrder(
@@ -253,23 +280,12 @@ export async function capturePaypalOrder(
   `;
   if (owned.length === 0) throw new Error("That PayPal order is not yours.");
 
-  let order: PaypalOrder;
-  try {
-    order = await paypalRequest("POST", `/v2/checkout/orders/${orderId}/capture`, {});
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "";
-    if (/already captured|ORDER_ALREADY_CAPTURED/i.test(msg)) {
-      order = await paypalRequest("GET", `/v2/checkout/orders/${orderId}`);
-    } else {
-      throw err;
-    }
-  }
+  let order = await captureSdkOrder(orderId);
   if (!captureCompleted(order)) {
-    const fresh = await paypalRequest("GET", `/v2/checkout/orders/${orderId}`);
-    if (!captureCompleted(fresh)) {
+    order = await getSdkOrder(orderId);
+    if (!captureCompleted(order)) {
       return { credits: 0, kind: "credit", already: false, pending: true };
     }
-    order = fresh;
   }
   return fulfillPaypalOrder(orderId);
 }
@@ -317,12 +333,12 @@ export async function getPaypalCheckout(userId: string, orderId: string): Promis
 
 export async function fulfillPaypalWebhook(orderId: string): Promise<void> {
   if (!orderId) return;
-  let order = await paypalRequest("GET", `/v2/checkout/orders/${orderId}`);
-  if (order.status === "APPROVED" && !captureCompleted(order)) {
+  let order = await getSdkOrder(orderId);
+  if (order.status === OrderStatus.Approved && !captureCompleted(order)) {
     try {
-      order = await paypalRequest("POST", `/v2/checkout/orders/${orderId}/capture`, {});
+      order = await captureSdkOrder(orderId);
     } catch {
-      order = await paypalRequest("GET", `/v2/checkout/orders/${orderId}`);
+      order = await getSdkOrder(orderId);
     }
   }
   if (!captureCompleted(order)) return;

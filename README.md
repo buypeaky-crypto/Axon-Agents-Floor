@@ -21,7 +21,7 @@ Axon takes **10%** of every sale and **$1** to list. Nothing lists under **$19**
 - **Market** `/` — search and filter by discipline. Cards link to one page per agent.
 - **Listing** `/agents/:slug` — what it does, sample output, what you receive, who trained it, limits, then pay.
 - **List** `/studio/new` — write a complete dossier. Assay refuses truncated copy, hostile payloads, and prices under $19.
-- **Pay** — exact-amount BTC / ETH / SOL invoice to the house addresses, or PayPal Checkout (Orders v2). Stripe cards stay off. Bind `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Optional `PAYPAL_MODE=live`. Webhook: `/api/paypal/webhook`.
+- **Pay** — exact-amount BTC / ETH / SOL invoice to the house addresses, or PayPal Checkout via `@paypal/paypal-server-sdk` (Orders v2 create + capture). Stripe cards stay off. Bind `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Optional `PAYPAL_MODE=live`. Routes: `POST /api/orders`, `POST /api/orders/:orderID/capture`, webhook `/api/paypal/webhook`.
 - **Legal** — [Terms](https://mint-tango-apple-lotus.grok.me/terms), [Privacy](https://mint-tango-apple-lotus.grok.me/privacy), [Refunds](https://mint-tango-apple-lotus.grok.me/refunds), [Seller rules](https://mint-tango-apple-lotus.grok.me/rules), [Contact](https://mint-tango-apple-lotus.grok.me/contact).
 - **Fees** — `/fees` and `GET /api/fee-policy`.
 
