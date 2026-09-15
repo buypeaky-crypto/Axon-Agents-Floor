@@ -101,7 +101,7 @@ function mapAgent(row: AgentRow): AgentRecord {
     salesCount: Number(row.sales_count),
     createdAt: asIso(row.created_at),
     weightsId: row.weights_id ?? "",
-    runtimeModel: row.runtime_model ?? "grok-4.6",
+    runtimeModel: row.runtime_model ?? "openai/gpt-oss-20b",
     temperature: Number(row.temperature ?? 0.7),
     maxTokens: Number(row.max_tokens ?? 480),
     weightCard: row.weight_card ?? "",

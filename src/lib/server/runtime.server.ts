@@ -6,25 +6,14 @@ export type RuntimeProvider = {
   model: string;
 };
 
-let xaiSpent = false;
-
 function env(name: string): string | undefined {
   const v = process.env[name]?.trim();
   return v || undefined;
 }
 
+/** Open-weight / free-tier hosts only. The house xAI key is never used. */
 export function listRuntimeProviders(): RuntimeProvider[] {
   const out: RuntimeProvider[] = [];
-  const groq = env("GROQ_API_KEY");
-  if (groq) {
-    out.push({
-      id: "groq",
-      label: "Groq",
-      baseUrl: "https://api.groq.com/openai/v1",
-      apiKey: groq,
-      model: env("GROQ_MODEL") || "llama-3.3-70b-versatile",
-    });
-  }
   const hf = env("HF_TOKEN") || env("HUGGINGFACE_API_KEY") || env("HUGGINGFACE_HUB_TOKEN");
   if (hf) {
     out.push({
@@ -35,6 +24,16 @@ export function listRuntimeProviders(): RuntimeProvider[] {
       model: env("HF_MODEL") || env("HUGGINGFACE_MODEL") || "Qwen/Qwen2.5-7B-Instruct",
     });
   }
+  const groq = env("GROQ_API_KEY");
+  if (groq) {
+    out.push({
+      id: "groq",
+      label: "Groq",
+      baseUrl: "https://api.groq.com/openai/v1",
+      apiKey: groq,
+      model: env("GROQ_MODEL") || "openai/gpt-oss-20b",
+    });
+  }
   const openrouter = env("OPENROUTER_API_KEY");
   if (openrouter) {
     out.push({
@@ -42,7 +41,7 @@ export function listRuntimeProviders(): RuntimeProvider[] {
       label: "OpenRouter",
       baseUrl: "https://openrouter.ai/api/v1",
       apiKey: openrouter,
-      model: env("OPENROUTER_MODEL") || "openrouter/auto",
+      model: env("OPENROUTER_MODEL") || "openrouter/free",
     });
   }
   const gemini = env("GEMINI_API_KEY") || env("GOOGLE_API_KEY");
@@ -55,25 +54,25 @@ export function listRuntimeProviders(): RuntimeProvider[] {
       model: env("GEMINI_MODEL") || "gemini-2.0-flash",
     });
   }
+  const cerebras = env("CEREBRAS_API_KEY");
+  if (cerebras) {
+    out.push({
+      id: "cerebras",
+      label: "Cerebras",
+      baseUrl: "https://api.cerebras.ai/v1",
+      apiKey: cerebras,
+      model: env("CEREBRAS_MODEL") || "llama3.1-8b",
+    });
+  }
   const compatUrl = env("OPENAI_COMPAT_BASE_URL") || env("CONDUIT_LLM_BASE_URL");
   const compatKey = env("OPENAI_COMPAT_API_KEY") || env("CONDUIT_LLM_API_KEY") || "none";
   if (compatUrl) {
     out.push({
       id: "compat",
-      label: "Conduit LLM",
+      label: "Open LLM host",
       baseUrl: compatUrl.replace(/\/$/, "").replace(/\/chat\/completions$/i, ""),
       apiKey: compatKey,
-      model: env("OPENAI_COMPAT_MODEL") || env("CONDUIT_LLM_MODEL") || "openai",
-    });
-  }
-  const xai = env("XAI_API_KEY");
-  if (xai && !xaiSpent) {
-    out.push({
-      id: "xai",
-      label: "xAI",
-      baseUrl: "https://api.x.ai/v1",
-      apiKey: xai,
-      model: env("XAI_MODEL") || "grok-4.6",
+      model: env("OPENAI_COMPAT_MODEL") || env("CONDUIT_LLM_MODEL") || "llama3.1",
     });
   }
   return out;
@@ -84,18 +83,10 @@ export function runtimeConfigured(): boolean {
 }
 
 export function xaiQuotaSpent(): boolean {
-  return xaiSpent;
-}
-
-function spendingLocked(status: number, body: string): boolean {
-  if (status !== 402 && status !== 403 && status !== 429) return false;
-  return /spending-limit|out of credits|quota|insufficient.?quota|budget/i.test(body);
+  return true;
 }
 
 function humanUpstreamError(status: number, body: string, provider: RuntimeProvider): string {
-  if (spendingLocked(status, body) && provider.id === "xai") {
-    return "House xAI quota is spent. Conduit will run Groq, Hugging Face, OpenRouter, Gemini, or OPENAI_COMPAT_BASE_URL if you bind one. Add credits at grok.com only if you want the house key back.";
-  }
   if (status === 401 || status === 403) {
     return `${provider.label} refused the key.`;
   }
@@ -134,7 +125,7 @@ export async function fetchRuntime(
       ok: false,
       status: 503,
       error:
-        "No live model bound. Set GROQ_API_KEY, HF_TOKEN, OPENROUTER_API_KEY, GEMINI_API_KEY, or OPENAI_COMPAT_BASE_URL. House xAI is spent or missing.",
+        "No open runtime bound. Set HF_TOKEN, GROQ_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY, CEREBRAS_API_KEY, or OPENAI_COMPAT_BASE_URL. The house xAI key is not used.",
     };
   }
   let last: RuntimeFetch = {
@@ -164,7 +155,6 @@ export async function fetchRuntime(
       const ctype = res.headers.get("content-type") ?? "";
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        if (provider.id === "xai" && spendingLocked(res.status, text)) xaiSpent = true;
         last = { ok: false, status: res.status, error: humanUpstreamError(res.status, text, provider) };
         continue;
       }

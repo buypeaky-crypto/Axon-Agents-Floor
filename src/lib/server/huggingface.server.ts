@@ -24,7 +24,7 @@ function token(): string | undefined {
 }
 
 export function huggingfaceUsername(): string {
-  return env("HF_USERNAME") || env("HUGGINGFACE_USERNAME") || "buypeaky-crypto";
+  return env("HF_USERNAME") || env("HUGGINGFACE_USERNAME") || "Manusagent";
 }
 
 export function huggingfaceRouterModel(): string {
@@ -82,7 +82,7 @@ export async function getHuggingFaceStatus(): Promise<HfStatus> {
     router: "https://router.huggingface.co/v1",
     models,
     note: configured
-      ? "HF_TOKEN is bound. Floor runs can use the Hugging Face router instead of the house xAI key."
+      ? "HF_TOKEN is bound. Floor runs use the Hugging Face router. The house xAI key is not called."
       : "Set HF_TOKEN (a Hugging Face access token with inference) and optional HF_USERNAME / HF_MODEL. Until then the desk still lists public models for this account.",
   };
 }

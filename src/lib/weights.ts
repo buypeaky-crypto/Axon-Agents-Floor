@@ -15,7 +15,7 @@ export type WeightPack = {
   sample: { user: string; reply: string };
 };
 
-const FLAGSHIP = "grok-4.6";
+const FLAGSHIP = "openai/gpt-oss-20b";
 
 const FALLBACK: Record<string, WeightPack> = {
   code: pack("wgt_code_base", "Code-W1", FLAGSHIP, 0.22, 520, "code"),
@@ -593,5 +593,6 @@ export function nextRevision(id: string, label: string): { id: string; label: st
 }
 
 export const RUNTIME_HEADS = [
-  { id: "grok-4.6", label: "Flagship · grok-4.6" },
+  { id: "openai/gpt-oss-20b", label: "Open · gpt-oss-20b" },
+  { id: "Qwen/Qwen2.5-7B-Instruct", label: "Hugging Face · Qwen 2.5" },
 ] as const;

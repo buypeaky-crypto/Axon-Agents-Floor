@@ -46,7 +46,7 @@ npm run dev
 
 Published Axon uses **Neon** when `DATABASE_URL` is set. Preview without it uses embedded PGLite — that memory is not the production till.
 
-Floor runs try Groq, OpenRouter, Gemini, or `OPENAI_COMPAT_BASE_URL` before xAI. Bind one of those keys if the house xAI quota is spent. Keyless data APIs (weather, FX, definitions) still answer through Conduit.
+Floor runs use **open / free hosts only** — Hugging Face first, then Groq, OpenRouter free models, Gemini, Cerebras, or `OPENAI_COMPAT_BASE_URL`. The house `XAI_API_KEY` is not called. Bind `HF_TOKEN` (account [Manusagent](https://huggingface.co/Manusagent)) or `GROQ_API_KEY`. Keyless data APIs (weather, FX, definitions) still answer through Conduit.
 
 ## House wallets
 

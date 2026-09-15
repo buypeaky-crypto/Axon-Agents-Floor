@@ -36,6 +36,18 @@ export type ConduitStatus = {
 
 const CATALOG: Omit<ConduitSource, "bound">[] = [
   {
+    sourceId: "huggingface",
+    name: "Hugging Face",
+    category: "runtime",
+    auth: "optional",
+    kind: "llm",
+    license: "hosted inference, free credits",
+    endpoint: "https://router.huggingface.co/v1/chat/completions",
+    method: "POST",
+    docs: "https://huggingface.co/docs/inference-providers",
+    note: "HF_TOKEN. Open models through the Inference Router. Default account Manusagent.",
+  },
+  {
     sourceId: "groq",
     name: "Groq",
     category: "runtime",
@@ -45,7 +57,7 @@ const CATALOG: Omit<ConduitSource, "bound">[] = [
     endpoint: "https://api.groq.com/openai/v1/chat/completions",
     method: "POST",
     docs: "https://console.groq.com",
-    note: "OpenAI-compatible. Bind GROQ_API_KEY and the floor stops spending the house xAI key.",
+    note: "GROQ_API_KEY. Open-weight gpt-oss on the free tier. No credit card.",
   },
   {
     sourceId: "openrouter",
@@ -81,7 +93,19 @@ const CATALOG: Omit<ConduitSource, "bound">[] = [
     endpoint: "OPENAI_COMPAT_BASE_URL/chat/completions",
     method: "POST",
     docs: "https://platform.openai.com/docs/api-reference/chat",
-    note: "Any OpenAI-shaped LLM. Set OPENAI_COMPAT_BASE_URL and optional OPENAI_COMPAT_API_KEY.",
+    note: "Any OpenAI-shaped open LLM (vLLM, TGI, Ollama, llama.cpp). Set OPENAI_COMPAT_BASE_URL.",
+  },
+  {
+    sourceId: "cerebras",
+    name: "Cerebras",
+    category: "runtime",
+    auth: "optional",
+    kind: "llm",
+    license: "hosted, free tier",
+    endpoint: "https://api.cerebras.ai/v1/chat/completions",
+    method: "POST",
+    docs: "https://inference.cerebras.ai",
+    note: "CEREBRAS_API_KEY. Open Llama on a free quota.",
   },
   {
     sourceId: "open-meteo",
@@ -241,8 +265,8 @@ export function conduitSystemBlock(binds: { name: string; endpoint: string; note
     .map((b) => `- ${b.name}: ${b.endpoint} — ${b.note}`)
     .join("\n");
   return [
-    "Conduit bindings. Prefer a GET to these open APIs over inventing a fact or spending the house xAI key.",
-    "Do not ask for an xAI key, a studio token, or any paid credential to answer what these already serve.",
+    "Conduit bindings. Prefer a GET to these open APIs over inventing a fact.",
+    "Do not ask for an xAI key. Floor runs use Hugging Face, Groq, OpenRouter, Gemini, Cerebras, or a compat host.",
     lines,
   ].join("\n");
 }

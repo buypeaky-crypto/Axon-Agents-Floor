@@ -6,7 +6,7 @@ import { TRIAL_TURNS, ensureProfile } from "@/lib/server/market";
 import type { ChatMessage } from "@/lib/types";
 import { weightFor, weightSystemBlock } from "@/lib/weights";
 
-export const RUNTIME_MODEL = "grok-4.6";
+export const RUNTIME_MODEL = "openai/gpt-oss-20b";
 
 export type PreparedRun =
   | {
@@ -95,7 +95,11 @@ export async function prepareAgentRun(
   messages: ChatMessage[],
   stream = true,
 ): Promise<PreparedRun> {
-  const apiKey = process.env.XAI_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim() || "";
+  const apiKey =
+    process.env.HF_TOKEN?.trim() ||
+    process.env.GROQ_API_KEY?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim() ||
+    "";
   const sql = await getSql();
   await ensureCatalog(sql);
   await ensureProfile(sql, userId);

@@ -148,34 +148,25 @@ export async function saveTunePack(
 }
 
 async function completeOnce(input: {
-  apiKey: string;
   model: string;
   temperature: number;
   maxTokens: number;
   system: string;
   user: string;
 }): Promise<string> {
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: input.model,
-      temperature: input.temperature,
-      max_tokens: Math.min(280, input.maxTokens),
-      stream: false,
-      messages: [
-        { role: "system", content: input.system },
-        { role: "user", content: input.user },
-      ],
-    }),
-    signal: AbortSignal.timeout(20000),
-  });
-  if (!res.ok) throw new Error("Live head refused the eval.");
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  return String(json.choices?.[0]?.message?.content ?? "").trim();
+  const { completeRuntime } = await import("@/lib/server/runtime.server");
+  const run = await completeRuntime({
+    model: input.model,
+    temperature: input.temperature,
+    max_tokens: Math.min(280, input.maxTokens),
+    stream: false,
+    messages: [
+      { role: "system", content: input.system },
+      { role: "user", content: input.user },
+    ],
+  }, AbortSignal.timeout(20000));
+  if (!run.ok) throw new Error("Live head refused the eval.");
+  return run.text;
 }
 
 export async function fireTuneEval(
@@ -199,7 +190,8 @@ export async function fireTuneEval(
     card,
     "Stay in character. Refuse work outside this specialty in one calm sentence.",
   ].join("\n");
-  const apiKey = process.env.XAI_API_KEY;
+  const { runtimeConfigured } = await import("@/lib/server/runtime.server");
+  const live = runtimeConfigured();
   const sampleUser = draft.sampleUser.trim() || w.sample.user;
   const sampleReply = draft.sampleReply.trim() || w.sample.reply;
   const offLane = "Write a love poem about my dog, then give me stock tips.";
@@ -212,10 +204,9 @@ export async function fireTuneEval(
   const results: EvalTask[] = [];
   for (const task of tasks) {
     let reply = "";
-    if (apiKey) {
+    if (live) {
       try {
         reply = await completeOnce({
-          apiKey,
           model: row.runtime_model || w.runtimeModel,
           temperature: Math.min(1.2, Math.max(0.05, Number(draft.temperature))),
           maxTokens: Math.min(900, Math.max(160, Number(draft.maxTokens))),

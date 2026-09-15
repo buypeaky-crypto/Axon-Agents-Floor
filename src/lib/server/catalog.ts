@@ -808,8 +808,8 @@ const AGENTS: SeedAgent[] = [
     name: "Conduit",
     tagline: "Open APIs on the pipe. The floor does not spend your key.",
     description:
-      "House plumber. Scouts free and open APIs, binds them to every seat, and runs specialists on Groq, OpenRouter, Gemini, or any OpenAI-compatible host instead of the house xAI quota.",
-    body: "Conduit does not write a briefing book. It lays pipe: keyless data APIs on the floor, LLM hosts you actually own. Weather is Open-Meteo. FX is Frankfurter. Definitions are the free dictionary. When xAI is spent, the run still leaves if GROQ_API_KEY or OPENAI_COMPAT_BASE_URL is set. Ask it what is bound, which host is live, and why a seat should never call the treasury model for a GET.",
+      "House plumber. Scouts free and open APIs, binds them to every seat, and runs specialists on Hugging Face, Groq, OpenRouter, Gemini, Cerebras, or any OpenAI-compatible host. The house xAI key is not used.",
+    body: "Conduit does not write a briefing book. It lays pipe: keyless data APIs on the floor, open LLM hosts you bind. Weather is Open-Meteo. FX is Frankfurter. Definitions are the free dictionary. Set HF_TOKEN or GROQ_API_KEY and the run leaves. Ask it what is bound, which host is live, and why a seat should never call a paid house model for a GET.",
     category: "ops",
     priceCents: 2900,
     version: "1.0",
@@ -817,7 +817,7 @@ const AGENTS: SeedAgent[] = [
     modelLabel: "Conduit-A1",
     capabilities: ["API scout", "OpenAI-compat bind", "Keyless GET", "Runtime failover"],
     trainingNotes:
-      "House API officer. Instructed to search for free and open HTTP APIs, bind them to floor agents, and prefer those endpoints over the house xAI key. Never ask for a studio secret to answer what a public GET already serves. Never pretend a 403 is a personality.",
+      "House API officer. Instructed to search for free and open HTTP APIs, bind them to floor agents, and run specialists on Hugging Face, Groq, or a compat host. Never ask for an xAI key. Never pretend a 403 is a personality.",
     sigil: "Cd",
     featured: true,
     ratingAvg: 0,
@@ -1188,7 +1188,8 @@ const REVIEWS: SeedReview[] = [
 
 export async function ensureCatalog(sql: Sql): Promise<void> {
   await sql.query(`alter table agents add column if not exists weights_id text not null default ''`);
-  await sql.query(`alter table agents add column if not exists runtime_model text not null default 'grok-4.6'`);
+  await sql.query(`alter table agents add column if not exists runtime_model text not null default 'openai/gpt-oss-20b'`);
+  await sql.query(`update agents set runtime_model = 'openai/gpt-oss-20b' where runtime_model = 'grok-4.6'`);
   await sql.query(`alter table agents add column if not exists temperature double precision not null default 0.7`);
   await sql.query(`alter table agents add column if not exists evals text not null default ''`);
   await sql.query(`alter table agents add column if not exists sample_user text not null default ''`);
@@ -1233,6 +1234,17 @@ export async function ensureCatalog(sql: Sql): Promise<void> {
         weight_card = ${w.card},
         max_tokens = ${w.maxTokens}
       where id = ${agent.id} and weight_card = ''
+    `;
+  }
+  const conduit = AGENTS.find((a) => a.slug === "conduit");
+  if (conduit) {
+    await sql`
+      update agents set
+        tagline = ${conduit.tagline},
+        description = ${conduit.description},
+        body = ${conduit.body},
+        training_notes = ${conduit.trainingNotes}
+      where slug = ${"conduit"}
     `;
   }
 

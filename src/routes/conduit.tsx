@@ -39,8 +39,8 @@ function ConduitPage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House pipe</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight sm:text-5xl">Conduit</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Scout free APIs. Bind them to every seat. Floor runs use Conduit first — Groq, OpenRouter, Gemini, or any
-          OpenAI-compatible host — so the house xAI key is not the only pipe.{" "}
+          Scout free APIs. Bind them to every seat. Floor runs use Hugging Face, Groq, OpenRouter, Gemini, Cerebras, or
+          any OpenAI-compatible host. The house xAI key is not called.{" "}
           <Link to="/agents/$slug" params={{ slug: "conduit" }} className="underline-offset-4 hover:underline">
             Acquire the officer
           </Link>
@@ -53,8 +53,10 @@ function ConduitPage() {
             <p className="mt-2 font-display text-2xl">
               {status.runtime.length > 0 ? status.runtime.map((r) => r.label).join(" · ") : "Unbound"}
             </p>
-            {status.xaiSpent && (
-              <p className="mt-2 text-xs text-muted-foreground">House xAI quota is spent. Bind Groq or a compat host.</p>
+            {status.runtime.length === 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Unbound. Set HF_TOKEN or GROQ_API_KEY on the host. xAI is off.
+              </p>
             )}
           </div>
           <div className="rounded-2xl bg-card p-5 shadow-[0_0_0_1px_rgb(236_234_228/0.08)]">

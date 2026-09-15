@@ -16,9 +16,8 @@ function HuggingFacePage() {
         <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">House pipe</p>
         <h1 className="mt-2 font-display text-4xl font-medium tracking-tight sm:text-5xl">Hugging Face</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Axon binds your Hugging Face account as a Conduit runtime. Floor seats call the Inference Router with{" "}
-          <span className="font-mono text-foreground">HF_TOKEN</span> so a run does not have to spend the house xAI
-          key. Public models under{" "}
+          Axon binds your Hugging Face account as the house runtime. Floor seats call the Inference Router with{" "}
+          <span className="font-mono text-foreground">HF_TOKEN</span>. The house xAI key is not used. Public models under{" "}
           <a
             href={`https://huggingface.co/${status.username}`}
             className="underline-offset-4 hover:underline"
@@ -57,7 +56,7 @@ function HuggingFacePage() {
             <span className="font-mono text-foreground">HF_USERNAME</span> and{" "}
             <span className="font-mono text-foreground">HF_MODEL</span>.
           </li>
-          <li>Floor runs try Hugging Face after Groq and before a spent xAI key. Keyless Conduit GETs still answer weather and FX.</li>
+          <li>Floor runs try Hugging Face first, then Groq and other free OpenAI-compatible hosts. Keyless Conduit GETs still answer weather and FX.</li>
         </ol>
 
         <h2 className="mt-14 font-display text-2xl font-medium">This account</h2>

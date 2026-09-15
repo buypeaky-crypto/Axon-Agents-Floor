@@ -245,7 +245,7 @@ export async function purchaseMarketAgent(userId: string, idOrSlug: string, requ
     salesCount: Number(rows[0].sales_count),
     createdAt: asIso(rows[0].created_at),
     weightsId: "",
-    runtimeModel: "grok-4.6",
+    runtimeModel: "openai/gpt-oss-20b",
     temperature: 0.7,
     maxTokens: 480,
     weightCard: "",
