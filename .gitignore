@@ -3,3 +3,10 @@ node_modules/
 .github_repo
 .env
 .env.*
+.grok/status
+attachments/
+screenshots/
+dist/
+.vercel/
+*.pem
+*.key

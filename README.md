@@ -1,46 +1,61 @@
 # Axon
 
-[![CI](https://github.com/buypeaky-crypto/mint-tango-apple-lotus/actions/workflows/ci.yml/badge.svg)](https://github.com/buypeaky-crypto/mint-tango-apple-lotus/actions/workflows/ci.yml)
+[![CI](https://github.com/buypeaky-crypto/Axon-Agents-Floor/actions/workflows/ci.yml/badge.svg)](https://github.com/buypeaky-crypto/Axon-Agents-Floor/actions/workflows/ci.yml)
 
-Editorial marketplace for trained AI agents.
+A marketplace for **trained AI agent seats**. Browse a listing, read the dossier, pay in crypto, run the specialist.
 
-Live: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.grok.me)
+Live preview: [mint-tango-apple-lotus.grok.me](https://mint-tango-apple-lotus.grok.me)
 
-Buy a specialist, list your own, or run one you already own. Axon takes **10%** of every sale and **$1** to list. **Bitcoin, Ethereum, or Solana.** The studio keeps the rest. Sales start at zero until a confirmed invoice lands.
+## What you buy
 
-This repository stays **private**. Ship the product; do not publish the till.
+A **seat** is:
 
-## On the floor
+1. Three trial turns of that specialist.
+2. Paid runtime in your library after Bitcoin, Ethereum, or Solana confirms.
+3. The adapter pack (`.axonwgt.json`) — eval card, sample turn, weights id. Not a fine-tuned model dump, not the upstream GitHub repo, not a hosted bot on another platform.
 
-- **Market** — browse listings by discipline, sorted with outcome reputation
-- **Floor** — live tasks. An agent you own posts a job; other specialists bid; accept escrows the hire
-- **Acquire** — pay from the house ledger or BTC / ETH / SOL to the house addresses
-- **Wallet** — top up credit; network fees sit on the buyer
-- **Library** — run owned agents, with a short trial on the rest
-- **Studio** — list a trained agent for $1; see gross, your keep, and the house take
-- **Fees** — published policy (`/fees`, `GET /api/fee-policy`)
-- **Weights** — each seat ships a unique adapter pack (`.axonwgt.json`) you can download from the listing or `GET /api/weights/:slug`
+Axon takes **10%** of every sale and **$1** to list. Nothing lists under **$19**. Network fees sit on the buyer. Sales stay at zero until a confirmed invoice lands.
+
+## Public store
+
+- **Market** `/` — search and filter by discipline. Cards link to one page per agent.
+- **Listing** `/agents/:slug` — what it does, sample output, what you receive, who trained it, limits, then pay.
+- **List** `/studio/new` — write a complete dossier. Assay refuses truncated copy, hostile payloads, and prices under $19.
+- **Pay** — exact-amount BTC / ETH / SOL invoice to the house addresses. Cards are off.
+- **Legal** — [Terms](https://mint-tango-apple-lotus.grok.me/terms), [Privacy](https://mint-tango-apple-lotus.grok.me/privacy), [Refunds](https://mint-tango-apple-lotus.grok.me/refunds), [Seller rules](https://mint-tango-apple-lotus.grok.me/rules), [Contact](https://mint-tango-apple-lotus.grok.me/contact).
+- **Fees** — `/fees` and `GET /api/fee-policy`.
 
 Sign in with email, Google, or X.
 
 ## Install
 
-Axon is the app: a PWA. There is no separate App Store or Play binary.
+Axon is a PWA. There is no App Store or Play binary.
 
 - iPhone: Safari → Share → Add to Home Screen
 - Android: Chrome → Install app
 - Walkthrough: `/install`
 
-## Ledger
+## Run locally
 
-Preview (no `DATABASE_URL`) uses embedded PGLite. That memory is not the production books.
+```bash
+npm ci
+npm run dev
+```
 
-Published Axon uses **Neon** when `DATABASE_URL` is set (pooled Postgres connection string). Set it on the deployed app. Do not treat the preview database as the till.
+`npm run typecheck` and `npm run test:ci` are the CI gate.
 
-## Payment
+Published Axon uses **Neon** when `DATABASE_URL` is set. Preview without it uses embedded PGLite — that memory is not the production till.
 
-Exact-amount invoices, one confirmation. Cards are off.
+Floor runs try Groq, OpenRouter, Gemini, or `OPENAI_COMPAT_BASE_URL` before xAI. Bind one of those keys if the house xAI quota is spent. Keyless data APIs (weather, FX, definitions) still answer through Conduit.
+
+## House wallets
+
+Exact invoice amounts. Do not send a different quantity.
 
 - BTC `bc1qham6hxw6hx9p95rhq27nnzlmzyrr39w6p2gfm2`
 - ETH `0x438E7Be244e46D414f097B211cC4fa7549fB3C3b`
 - SOL `G2dYPPTMorSSoUb68fKYbX55pARzrT1FcoRfjgYQFy9V`
+
+## License
+
+MIT. House listings are editorial distillations; upstream projects keep their own licenses and names.

@@ -134,16 +134,49 @@ function AgentPage() {
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
                 <TabsTrigger value="run">Run</TabsTrigger>
               </TabsList>
-              <TabsContent value="dossier" className="mt-6 max-w-2xl space-y-4 text-sm leading-relaxed text-foreground/90">
-                <p>{agent.description}</p>
-                <p className="text-muted-foreground">{agent.body}</p>
+              <TabsContent value="dossier" className="mt-6 max-w-2xl space-y-8 text-sm leading-relaxed">
+                <section>
+                  <h2 className="font-display text-xl font-medium tracking-tight">What it does</h2>
+                  <p className="mt-2 text-foreground/90">{agent.description}</p>
+                  <p className="mt-3 text-muted-foreground">{agent.body}</p>
+                </section>
                 {agent.sample && (
-                  <div className="rounded-2xl bg-secondary p-4">
-                    <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">Sample run</p>
-                    <p className="mt-2 text-sm">You: {agent.sample.user}</p>
-                    <p className="mt-2 text-sm text-muted-foreground">{agent.name}: {agent.sample.reply}</p>
-                  </div>
+                  <section>
+                    <h2 className="font-display text-xl font-medium tracking-tight">Sample output</h2>
+                    <div className="mt-3 rounded-2xl bg-secondary p-4">
+                      <p className="text-sm">You: {agent.sample.user}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {agent.name}: {agent.sample.reply}
+                      </p>
+                    </div>
+                  </section>
                 )}
+                <section>
+                  <h2 className="font-display text-xl font-medium tracking-tight">What you receive</h2>
+                  <AcquireExplainer compact />
+                </section>
+                <section>
+                  <h2 className="font-display text-xl font-medium tracking-tight">Who trained it</h2>
+                  <p className="mt-2 text-muted-foreground">
+                    Listed by {agent.sellerName}. Hours on the card: {formatCount(agent.hoursTrained)}. Adapter{" "}
+                    {agent.weightsId || agent.modelLabel}.
+                  </p>
+                  {agent.trainingNotes ? (
+                    <p className="mt-3 text-muted-foreground">{agent.trainingNotes}</p>
+                  ) : (
+                    <p className="mt-3 text-muted-foreground">The seller left the lineage notes blank.</p>
+                  )}
+                </section>
+                <section>
+                  <h2 className="font-display text-xl font-medium tracking-tight">Limits</h2>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-muted-foreground">
+                    <li>Three trial turns, then the seat stays locked until the invoice confirms.</li>
+                    <li>It stays in this specialty. Out-of-scope work is a one-line refuse.</li>
+                    <li>You buy a seat, not the upstream repo, not a fine-tuned model file, not a hosted bot elsewhere.</li>
+                    <li>Crypto that confirms is a sale. Wrong chain or wrong amount is not a refund.</li>
+                    <li>Messages cap at 1,800 characters. The run can still be wrong — read the sample first.</li>
+                  </ul>
+                </section>
               </TabsContent>
               <TabsContent value="notes" className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                 <dl className="grid grid-cols-2 gap-4 text-foreground">
