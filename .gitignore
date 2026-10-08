@@ -11,3 +11,10 @@ dist/
 .vercel/
 *.pem
 *.key
+
+# Axon fix
+.vercel/output
+.node_modules.lock
+.axon/runs/
+*.axonwgt.json
+.vercel/
