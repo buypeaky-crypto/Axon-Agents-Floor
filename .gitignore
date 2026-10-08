@@ -22,3 +22,5 @@ dist/
 .vercel/output/
 .vercel/
 **/.vercel/
+.vercel
+.env*
