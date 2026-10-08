@@ -18,3 +18,7 @@ dist/
 .axon/runs/
 *.axonwgt.json
 .vercel/
+.vercel/
+.vercel/output/
+.vercel/
+**/.vercel/
